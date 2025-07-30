@@ -2,4 +2,4 @@
 __pycache__/
 data
 *.pyc
-*.egg-info
+*.egg-info/
