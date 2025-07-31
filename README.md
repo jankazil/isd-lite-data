@@ -6,7 +6,7 @@ ISDLite is product derived from [ISD](https://www.ncei.noaa.gov/products/land-ba
 
 ## Overview
 
-The project consists of two main modules:
+The project consists of the following modules:
 
 - **`ncei.py`**: Functions for
   - Downloading ISDLite data
