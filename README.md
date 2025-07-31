@@ -1,8 +1,8 @@
 # ISD-lite-data
 
-**ISD-lite-data** is a Python toolkit for accessing, downloading, and processing [ISDLite](https://www.ncei.noaa.gov/pub/data/noaa/isd-lite/) version data of the [Integrated Surface Database (ISD)](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database) from NOAA.
+**ISD-lite-data** is a Python toolkit for accessing, downloading, and processing [ISDLite](https://www.ncei.noaa.gov/pub/data/noaa/isd-lite) data. ISDLite is a version of the Integrated Surface Database (ISD), provided online by NOAA's National Centers for Environmental Information (NCEI).
 
-ISDLite is product derived from ISD that makes it easier to work with for general research and scientific purposes. It is a subset of the full ISD containing eight common surface parameters in a fixed-width format free of duplicate values, sub-hourly data, and complicated flags.[^1]
+ISDLite is product derived from [ISD](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database), which is easier to work with for general research and scientific purposes. It is a subset of the full ISD containing eight common surface parameters in a fixed-width format free of duplicate values, sub-hourly data, and complicated flags.
 
 ## Overview
 
@@ -30,7 +30,7 @@ All test scripts demonstrate usage and serve as functional examples. See:
 
 ## Disclaimer
 
-The ISDLite data accessed by this software are publicly available from NOAA and are subject to their terms of use. This project is not affiliated with or endorsed by NOAA.
+The ISDLite data accessed by this software are publicly available from NOAA's National Centers for Environmental Information and are subject to their terms of use. This project is not affiliated with or endorsed by NOAA.
 
 ## Author
 Jan Kazil - jan.kazil.dev@gmail.com - [jankazil.com](https://jankazil.com)
@@ -38,5 +38,3 @@ Jan Kazil - jan.kazil.dev@gmail.com - [jankazil.com](https://jankazil.com)
 ## License
 
 BSD 3-clause
-
-[^1]: [NOAA ISD](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database)
