@@ -34,7 +34,8 @@ def download_year_range(
         start_year (int): Gregorian year of the first data file to be downloaded
         end_year (int): Gregorian year of the last data file to be downloaded
         usaf_id (str): Air Force station ID. May contain a letter in the first position.
-        wban_id (str): NCDC WBAN number
+        local_dir (Path): Local directory where the downloaded files will be saved.
+        refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
     
     Returns:
         list[Path]: List of local paths of the downloaded files.
@@ -59,6 +60,8 @@ def download(year: int,usaf_id: str,wban_id: str,local_dir: Path,refresh: bool =
         year (int): Gregorian year of the data
         usaf_id (str): Air Force station ID. May contain a letter in the first position.
         wban_id (str): NCDC WBAN number
+        local_dir (Path): Local directory where the downloaded files will be saved.
+        refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
     
     Returns:
         Path: Local path of the downloaded file.
@@ -121,4 +124,3 @@ def download(year: int,usaf_id: str,wban_id: str,local_dir: Path,refresh: bool =
         f.write(etag)
     
     return local_file_path
-
