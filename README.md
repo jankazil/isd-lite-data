@@ -21,7 +21,8 @@ The project consists of two main modules:
 
 All test scripts demonstrate usage and serve as functional examples. See:
 
-- `test_ncei_download.py` for downloading a sample ISD Lite file
+- `test_ncei_download.py` for downloading a sample ISD Lite file for a given year and station 
+- `test_ncei_download_year_range.py` for downloading ISD Lite files for a given range of years, for a given station 
 
 ## Notes
 
