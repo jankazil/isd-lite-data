@@ -4,7 +4,10 @@ Classes to hold ISDLite data and perform operations on them.
 
 from typing import Self
 from pathlib import Path
+from datetime import datetime
+
 import pandas as pd
+
 from isd_lite_data import ncei
 
 class Stations():
@@ -80,7 +83,7 @@ class Stations():
         
         # Read station database from file into a Pandas dataframe
         
-        tmp_data = pd.read_fwf(stations_file,skiprows=header_n,header=0, dtype={"USAF": str, "WBAN": str})
+        tmp_data = pd.read_fwf(stations_file,skiprows=header_n,header=0, dtype={"USAF": str, "WBAN": str, "BEGIN": str, "END": str})
         
         # Drop any lines with
         # - missing LAT or LON data
@@ -92,6 +95,11 @@ class Stations():
         
         station_metadata = station_metadata.reset_index(drop=True)
         
+        # Convert the 'BEGIN' and 'END' columns from date strings to datetime objects
+        
+        station_metadata['BEGIN'] = pd.to_datetime(station_metadata['BEGIN'], format="%Y%m%d")
+        station_metadata['END'] = pd.to_datetime(station_metadata['END'], format="%Y%m%d")
+
         return cls(station_metadata)
     
     def print_countries(self):
@@ -205,4 +213,165 @@ class Stations():
         station_metadata = station_metadata.reset_index(drop=True)
         
         return Stations(station_metadata)
-
+    
+    def filter_by_period(self,start_time: datetime,end_time: datetime) -> Self:
+        
+        """
+        
+        Filters the station metadata by data period.
+        
+        
+        Args:
+            start_time (datetime): Start time of period for which station data must are available
+            end_time (datetime): End time of period for which station data must are available
+        
+        Returns:
+            Stations: An instance of Stations holding the ISD station metadata for the stations
+                      whose data period fully covers the period given by the start and end time.
+        
+        """
+        
+        # Filter by time period
+        
+        station_metadata = self.station_metadata[
+                          (self.station_metadata['BEGIN'] <= start_time) &
+                          (self.station_metadata['END'] >= end_time)
+                          ]
+        
+        # Reset row index
+        
+        station_metadata = station_metadata.reset_index(drop=True)
+        
+        return Stations(station_metadata)
+    
+    def id(self)  -> list[list[str]]:
+        
+        """
+        
+        Returns a list of 2-element lists containing station USAF and WBAN IDs as strings.
+        
+        Returns:
+            list[list[str]]: A list of 2-element lists. Each inner list contains:
+                             - First element : USAF = Air Force station ID. May contain a letter in the first position.  (str)
+                             - Second element: WBAN = NCDC WBAN number (str)
+        
+        """
+        
+        # Selects all rows and the first two columns in the dataframe
+        subset = self.station_metadata.iloc[:, 0:2]
+        
+        # Convert to nested list
+        result = subset.values.tolist()
+        
+        return result
+        
+    def coordinates(self)  -> list[list[str]]:
+        
+        """
+        
+        Returns a list of 2-element lists containing station latitude and longitude as floating point numbers.
+        
+        Returns:
+            list[list[float]]: A list of 2-element lists. Each inner list contains:
+                               - First element: station latitude  (float)
+                               - Second element: station longitude (float)
+        
+        """
+        
+        # Selects all rows and the 6th and 7th columns in the dataframe
+        subset = self.station_metadata.iloc[:, 6:8]
+        
+        # Convert to nested list
+        result = subset.values.tolist()
+        
+        return result
+        
+    def name(self)  -> list[str]:
+        
+        """
+        
+        Returns a list station names as strings.
+        
+        Returns:
+            list[str]: A list of station names.
+        
+        """
+        
+        # Selects all rows and the 2nd column in the dataframe
+        subset = self.station_metadata.iloc[:,2]
+        
+        # Convert to list
+        result = subset.values.tolist()
+        
+        return result
+        
+    def elevation(self)  -> list[list[float]]:
+        
+        """
+        
+        Returns a list station elevations.
+        
+        Returns:
+            list[float]: List of station elevation as floating point numbers (m).
+        
+        """
+        
+        # Selects all rows and the 8th column in the dataframe
+        subset = self.station_metadata.iloc[:,8]
+        
+        # Convert to list
+        result = subset.values.tolist()
+        
+        return result
+        
+    def data_period(self)  -> list[list[datetime]]:
+        
+        """
+        
+        Returns a list of 2-element lists containing the start and end dates of the period with data for each station.
+        
+        Returns:
+            list[list[datetime]]: A list of 2-element lists. Each inner list contains:
+                                  - First element: station data period start date (datetime)
+                                  - Second element: station data period end date (datetime)
+        
+        """
+        
+        # Selects all rows and the 9th and 10th columns in the dataframe
+        subset = self.station_metadata.iloc[:, 9:11]
+        
+        # Convert to nested list
+        result = subset.values.tolist()
+        
+        return result
+        
+    def meta_data(self)  -> list[list]:
+        
+        """
+        
+        Returns a list of 11-element lists containing the station metadata
+        
+        Returns:
+            list[list]: A list of 11-element lists. Each inner list contains:
+                                  -  USAF = Air Force station ID. May contain a letter in the first position (str)
+                                  -  WBAN = NCDC WBAN number (str)
+                                  -  STATION NAME = Location name (str)
+                                  -  CTRY = FIPS country ID (str)
+                                  -    ST = State for US stations (str)
+                                  -  ICAO = ICAO ID (str)
+                                  -   LAT = Latitude in thousandths of decimal degrees (float)
+                                  -   LON = Longitude in thousandths of decimal degrees (float)
+                                  -  ELEV = Elevation in meters (float)
+                                  - BEGIN = Station data period start date (datetime)
+                                  -   END = Station data period end date (datetime)
+        
+        """
+        
+        # Selects all rows and columns in the dataframe
+        subset = self.station_metadata.iloc[:,:]
+        
+        # Convert to nested list
+        result = subset.values.tolist()
+        
+        return result
+        

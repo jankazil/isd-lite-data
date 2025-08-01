@@ -16,8 +16,18 @@ The project consists of the following modules:
   Classes and functions for:
   - Loading ISD station metadata from file (with download if needed).
   - Listing available countries and US states.
-  - Filtering station metadata by country, US state, or geographic bounding box (latitude and longitude).
+  - Filtering station metadata by
+    - country
+    - US state
+    - geographic bounding box (latitude and longitude)
+    - time period for which a station has observations
   - Returning filtered station metadata as a new object.
+  - Returning all or select station metadata:
+    - station USAF and WBAN ID
+    - station name
+    - station coordinates
+    - station elevation
+    - station period with obervations
 
 ## Dependencies
 
@@ -43,6 +53,9 @@ All test scripts demonstrate usage and serve as functional examples. See:
 
 - `test_data_stations_filter_by_US_state.py`  
   Filter the station metadata by US state code (e.g., 'CO' for Colorado).
+
+- `test_data_stations_metadata.py`  
+  Filter the station metadata by country code (e.g., 'CH' for Switzerland/China), then further by geographic coordinates and period of interest; list selected station metadata (station name, coordinates, elevation).
 
 ## Notes
 
