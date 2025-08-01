@@ -1,5 +1,5 @@
 """
-Classes to hold ISDLit data and perform operations on them.
+Classes to hold ISDLite data and perform operations on them.
 """
 
 from typing import Self
