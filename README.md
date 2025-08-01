@@ -10,7 +10,7 @@ The project consists of the following modules:
 
 - **`ncei.py`**  
   Functions for:
-  - Downloading ISDLite data.
+  - Downloading ISDLite data (unless present as local files).
 
 - **`data.py`**  
   Classes and functions for:
