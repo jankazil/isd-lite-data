@@ -14,15 +14,17 @@ The project consists of the following modules:
 
 - **`data.py`**  
   Classes and functions for:
-  - Loading ISD station metadata from file (with download if needed).
+  - Loading ISD station metadata from the web
+  - Loading ISD station metadata from file
+  - Saving ISD station metadata to a file
   - Listing available countries and US states.
-  - Filtering station metadata by
+  - Filtering stations by
     - country
     - US state
     - geographic bounding box (latitude and longitude)
-    - time period for which a station has observations
-  - Returning filtered station metadata as a new object.
-  - Returning all or select station metadata:
+    - time period for which a station has observations (nominally)
+    - time period for which a station has observations (actually available for download)
+  - Listing all or select metadata of select stations:
     - station USAF and WBAN ID
     - station name
     - station coordinates
