@@ -187,7 +187,7 @@ def url_exists(url: str) -> bool:
         bool: True if file exists at given URL, False othewise
     """
     try:
-        response = requests.head(url, allow_redirects=True, timeout=5)
+        response = requests.head(url, allow_redirects=True, timeout=20)
         return response.status_code == 200 # A status code of 200 means the file exists
     except requests.RequestException:
         return False
