@@ -136,7 +136,7 @@ class Stations():
         Integrated Surface Database (ISD) Station History file, available online.
         
         Args:
-            title_pine (str): First line in the file, can be used to describe specifics
+            title_line (str): First line in the file, can be used to describe specifics
                               of the stations in the file, e.g., "Stations in Texas between 2002-2012 for which data are available for download"
             file_path (Path): Path to file with station metadata
         
