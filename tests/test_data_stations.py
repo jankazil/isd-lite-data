@@ -10,7 +10,7 @@ from isd_lite_data import data
 
 data_dir = Path('..') / 'data'
 
-all_stations = data.Stations.from_file(data_dir)
+all_stations = data.Stations.from_url()
 
 all_stations.print_countries()
 

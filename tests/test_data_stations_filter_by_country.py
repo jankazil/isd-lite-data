@@ -17,7 +17,7 @@ from isd_lite_data import data
 
 data_dir = Path('..') / 'data'
 
-all_stations = data.Stations.from_file(data_dir)
+all_stations = data.Stations.from_url()
 
 switzerland_and_china_stations = all_stations.filter_by_country(['CH'])
 

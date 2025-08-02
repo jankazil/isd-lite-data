@@ -5,6 +5,7 @@ Classes to hold ISDLite data and perform operations on them.
 from typing import Self
 from pathlib import Path
 from datetime import datetime
+import tempfile
 
 import pandas as pd
 
@@ -20,8 +21,8 @@ class Stations():
       - a list of countries where stations are located
       - a list of US states where stations are located
     
-    The ISD station metadata data is initialized from file, if the ISD
-    station file exists locally. Otherwise, the file will be downloaded.
+    The ISD station metadata data is initialized from a file or from the
+    Integrated Surface Database (ISD) Station History file, available online.
     
     """
     
@@ -54,28 +55,25 @@ class Stations():
         return
     
     @classmethod
-    def from_file(cls,data_dir: Path) -> Self:
+    def from_file(cls,file_path: Path) -> Self:
         
         """
         
-        Alternative constructor, initializes the ISD station metadata from an "ISD history file",
-        called isd-history.txt, if the file exists. If it does not, it is downloaded first.
+        Alternative constructor, initializes the ISD station metadata from a file, which
+        must have the same structure as the Integrated Surface Database (ISD) Station History
+        file, available online.
         
         Args:
-            data_dir (Path): Path to directory with the ISD history file "isd-history.txt"
+            file_path (Path): Path to file with station metadata
         
         Returns:
             Stations: An instance of Stations initialized with data from the file.
         
         """
         
-        # Download the station database if not present locally
-        
-        stations_file = ncei.download_stations(data_dir)
-        
         # Find the header length
         
-        with open(stations_file) as f:
+        with open(file_path) as f:
             for i, line in enumerate(f):
                 if line.startswith('USAF   WBAN  STATION NAME'):
                     header_n = i
@@ -83,7 +81,7 @@ class Stations():
         
         # Read station database from file into a Pandas dataframe
         
-        tmp_data = pd.read_fwf(stations_file,skiprows=header_n,header=0, dtype={"USAF": str, "WBAN": str, "BEGIN": str, "END": str})
+        tmp_data = pd.read_fwf(file_path,skiprows=header_n,header=0, dtype={"USAF": str, "WBAN": str, "BEGIN": str, "END": str})
         
         # Drop any lines with
         # - missing LAT or LON data
@@ -101,6 +99,104 @@ class Stations():
         station_metadata['END'] = pd.to_datetime(station_metadata['END'], format="%Y%m%d")
 
         return cls(station_metadata)
+    
+    @classmethod
+    def from_url(cls) -> Self:
+        
+        """
+        
+        Alternative constructor, initializes the ISD station metadata from the
+        Integrated Surface Database (ISD) Station History file, available online.
+        
+        Args:
+            
+        
+        Returns:
+            Stations: An instance of Stations initialized with data obtained online.
+        
+        """
+        
+        # Download the station database file
+        
+        tmpfile = Path(tempfile.NamedTemporaryFile(delete=False).name)
+        
+        ncei.download_stations(tmpfile)
+        
+        stations = cls.from_file(tmpfile)
+        
+        tmpfile.unlink()
+        
+        return stations
+    
+    def save(self,title_line: str, file_path: Path) -> Self:
+        
+        """
+        
+        Saves ISD station metadata to a file which has the same structure as the
+        Integrated Surface Database (ISD) Station History file, available online.
+        
+        Args:
+            title_pine (str): First line in the file, can be used to describe specifics
+                              of the stations in the file, e.g., "Stations in Texas between 2002-2012 for which data are available for download"
+            file_path (Path): Path to file with station metadata
+        
+        Returns:
+        
+        """
+        
+        # Header
+        
+        header = """
+ USAF = Air Force station ID. May contain a letter in the first position.
+ WBAN = NCDC WBAN number
+ CTRY = FIPS country ID
+   ST = State for US stations
+ ICAO = ICAO ID
+  LAT = Latitude in thousandths of decimal degrees
+  LON = Longitude in thousandths of decimal degrees
+ ELEV = Elevation in meters
+BEGIN = Beginning Period Of Record (YYYYMMDD). There may be reporting gaps within the P.O.R.
+  END = Ending Period Of Record (YYYYMMDD). There may be reporting gaps within the P.O.R.
+
+Notes:
+- Missing station name, etc indicate the metadata are not currently available.
+- The term "bogus" indicates that the station name, etc are not available.
+- For a small % of the station entries in this list, climatic data are not 
+  available. To determine data availability for each location, see the 
+  'isd-inventory.txt' or 'isd-inventory.csv' file. 
+"""
+
+        # Define column order and widths for formatting
+        columns = ["USAF", "WBAN", "STATION NAME", "CTRY", "ST", "CALL",  "LAT", "LON", "ELEV(M)", "BEGIN", "END"]
+        widths =  [7,6,30,5,3,6,8,9,8,9,9]
+        
+        # Prepare the header line
+        header_line = "".join(f"{col:<{w}}" for col, w in zip(columns, widths))
+        
+        with open(file_path, 'w') as f:
+            f.write(title_line + '\n')
+            f.write('\n')
+            f.write(header.lstrip('\n'))
+            f.write('\n')
+            f.write(header_line + '\n')
+            f.write('\n')
+            for _, row in self.station_metadata.iterrows():
+                row_strs = [
+                f"{str(row['USAF']):<7}",
+                f"{str(row['WBAN']):<6}",
+                f"{str(row['STATION NAME']):<30}",
+                f"{str(row['CTRY']):<3}",
+                f"{str(row['ST']):>4}",
+                f"{str(row['CALL']):>5}",
+                f"{float(row['LAT']):+9.3f}",
+                f"{float(row['LON']):+9.3f}",
+                f"{float(row['ELEV(M)']):+8.1f}",
+                f"{row['BEGIN'].strftime('%Y%m%d'):>9}",
+                f"{row['END'].strftime('%Y%m%d'):>9}"
+                ]
+                f.write("".join(row_strs) + '\n')
+        
+        return
     
     def print_countries(self):
         
@@ -222,8 +318,8 @@ class Stations():
         
         
         Args:
-            start_time (datetime): Start time of period for which station data must are available
-            end_time (datetime): End time of period for which station data must are available
+            start_time (datetime): Start time of period for which observations are nominally available
+            end_time (datetime): End time of period for which station observations are nominally available
         
         Returns:
             Stations: An instance of Stations holding the ISD station metadata for the stations
@@ -244,7 +340,62 @@ class Stations():
         
         return Stations(station_metadata)
     
-    def id(self)  -> list[list[str]]:
+    def filter_by_data_availability(self,start_time: datetime,end_time: datetime,verbose: bool = False) -> Self:
+        
+        """
+        
+        Filters the station metadata by whether files with observations are available for download
+        for the given period. This filter is needed because some files with observations are not available
+        for download even though the station metadata may indicate that data exist for the given period.
+        
+        This can take a while, depending on the responsiveness of the NCEI server.
+        
+        Args:
+            start_time (datetime): Start time of period for which files with observations must are available
+            end_time (datetime): End time of period for which files with observations must are available
+            verbose (bool): If True, print information. Defaults to False.
+        
+        Returns:
+            Stations: An instance of Stations holding the ISD station metadata for the stations
+                      for which files with observations are available for download for the period given
+                      by the start and end time.
+        
+        """
+        
+        #
+        # Construct a new dataframe
+        #
+        
+        if verbose:
+            print()
+            print('Filtering out stations for which not all files with observations are available in the period of interest',str(start_time),'to',str(end_time))
+            print()
+        
+        filtered_rows = []
+        
+        for _, row in self.station_metadata.iterrows():
+            observations_files_available = True
+            for year in range(start_time.year,end_time.year):
+                url = ncei.isdlite_data_url(year,row['USAF'],row['WBAN'])
+                observations_files_available = observations_files_available and ncei.url_exists(url)
+            if observations_files_available:
+                filtered_rows.append(row)
+                if verbose:
+                    print('Including station',row['USAF'],row['WBAN'],row['STATION NAME'])
+            else:
+                if verbose:
+                    print('Excluding station',row['USAF'],row['WBAN'],row['STATION NAME'],'(not all files with observations are available for download)')
+
+        # Construct a new DataFrame from the selected rows
+        station_metadata = pd.DataFrame(filtered_rows)
+        
+        # Reset row index
+        
+        station_metadata = station_metadata.reset_index(drop=True)
+        
+        return Stations(station_metadata)
+    
+    def id(self) -> list[list[str]]:
         
         """
         
@@ -265,7 +416,7 @@ class Stations():
         
         return result
         
-    def coordinates(self)  -> list[list[str]]:
+    def coordinates(self) -> list[list[str]]:
         
         """
         
@@ -286,7 +437,7 @@ class Stations():
         
         return result
         
-    def name(self)  -> list[str]:
+    def name(self) -> list[str]:
         
         """
         
@@ -305,7 +456,7 @@ class Stations():
         
         return result
         
-    def elevation(self)  -> list[list[float]]:
+    def elevation(self) -> list[list[float]]:
         
         """
         
@@ -324,7 +475,7 @@ class Stations():
         
         return result
         
-    def data_period(self)  -> list[list[datetime]]:
+    def data_period(self) -> list[list[datetime]]:
         
         """
         
@@ -345,7 +496,7 @@ class Stations():
         
         return result
         
-    def meta_data(self)  -> list[list]:
+    def meta_data(self) -> list[list]:
         
         """
         
@@ -353,17 +504,17 @@ class Stations():
         
         Returns:
             list[list]: A list of 11-element lists. Each inner list contains:
-                                  -  USAF = Air Force station ID. May contain a letter in the first position (str)
-                                  -  WBAN = NCDC WBAN number (str)
-                                  -  STATION NAME = Location name (str)
-                                  -  CTRY = FIPS country ID (str)
-                                  -    ST = State for US stations (str)
-                                  -  ICAO = ICAO ID (str)
-                                  -   LAT = Latitude in thousandths of decimal degrees (float)
-                                  -   LON = Longitude in thousandths of decimal degrees (float)
-                                  -  ELEV = Elevation in meters (float)
-                                  - BEGIN = Station data period start date (datetime)
-                                  -   END = Station data period end date (datetime)
+                        - USAF = Air Force station ID. May contain a letter in the first position (str)
+                        - WBAN = NCDC WBAN number (str)
+                        - STATION NAME = Location name (str)
+                        - CTRY = FIPS country ID (str)
+                        - ST = State for US stations (str)
+                        - ICAO = ICAO ID (str)
+                        - LAT = Latitude in thousandths of decimal degrees (float)
+                        - LON = Longitude in thousandths of decimal degrees (float)
+                        - ELEV = Elevation in meters (float)
+                        - BEGIN = Station data period start date (datetime)
+                        - END = Station data period end date (datetime)
         
         """
         

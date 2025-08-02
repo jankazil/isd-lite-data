@@ -16,7 +16,7 @@ data_dir = Path('..') / 'data'
 
 # Get metadata for all stations
 
-all_stations = data.Stations.from_file(data_dir)
+all_stations = data.Stations.from_url()
 
 # Filter by country and coordinates
 
