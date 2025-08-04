@@ -370,7 +370,7 @@ Notes:
         
         for _, row in self.station_metadata.iterrows():
             observations_files_available = True
-            for year in range(start_time.year,end_time.year):
+            for year in range(start_time.year,end_time.year+1):
                 url = ncei.isdlite_data_url(year,row['USAF'],row['WBAN'])
                 observations_files_available = observations_files_available and ncei.url_exists(url)
             if observations_files_available:
