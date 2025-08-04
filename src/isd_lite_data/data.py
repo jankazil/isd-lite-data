@@ -71,33 +71,33 @@ class Stations():
         
         """
         
-        # Find the header length
+        # Define column widths and names
+        widths = [6,6,30,3,5,5,9,9,8,9,9]
+        column_names = ['USAF', 'WBAN', 'STATION NAME', 'CTRY', 'ST', 'CALL','LAT', 'LON', 'ELEV(M)', 'BEGIN', 'END']
         
-        with open(file_path) as f:
-            for i, line in enumerate(f):
-                if line.startswith('USAF   WBAN  STATION NAME'):
-                    header_n = i
-                    break
+        # Read the data rows from the file
+        station_metadata = pd.read_fwf(file_path,widths=widths,skiprows=22,names=column_names,dtype=str)
         
-        # Read station database from file into a Pandas dataframe
+        # Strip whitespace
+        station_metadata = station_metadata.map(lambda x: x.strip() if isinstance(x, str) else x)
         
-        tmp_data = pd.read_fwf(file_path,skiprows=header_n,header=0, dtype={"USAF": str, "WBAN": str, "BEGIN": str, "END": str})
+        # Convert LAT, LON, ELEV(M) to float if possible; empty strings become NaN
+        for col in ['LAT', 'LON', 'ELEV(M)']:
+            station_metadata[col] = pd.to_numeric(station_metadata[col], errors='coerce')
         
-        # Drop any lines with
-        # - missing LAT or LON data
-        # - LAT and LON are both zero
+        # Drop rows where both LAT and LON are NaN
+        station_metadata = station_metadata.dropna(subset=['LAT', 'LON'], how='all')
         
-        station_metadata = tmp_data.dropna(subset=["LAT", "LON"]).query("not (LON == 0 and LAT == 0)")
-        
-        # Reset row index
-        
-        station_metadata = station_metadata.reset_index(drop=True)
+        # Drop rows where the station name contains 'bogus'
+        station_metadata = station_metadata[~station_metadata['STATION NAME'].str.contains('bogus', case=False, na=False)]
         
         # Convert the 'BEGIN' and 'END' columns from date strings to datetime objects
+        for col in ['BEGIN', 'END']:
+            station_metadata[col] = pd.to_datetime(station_metadata[col], format="%Y%m%d", errors='coerce')
         
-        station_metadata['BEGIN'] = pd.to_datetime(station_metadata['BEGIN'], format="%Y%m%d")
-        station_metadata['END'] = pd.to_datetime(station_metadata['END'], format="%Y%m%d")
-
+        # Reset index
+        station_metadata = station_metadata.reset_index(drop=True)
+        
         return cls(station_metadata)
     
     @classmethod
@@ -166,27 +166,22 @@ Notes:
   'isd-inventory.txt' or 'isd-inventory.csv' file. 
 """
 
-        # Define column order and widths for formatting
-        columns = ["USAF", "WBAN", "STATION NAME", "CTRY", "ST", "CALL",  "LAT", "LON", "ELEV(M)", "BEGIN", "END"]
-        widths =  [7,6,30,5,3,6,8,9,8,9,9]
-        
-        # Prepare the header line
-        header_line = "".join(f"{col:<{w}}" for col, w in zip(columns, widths))
+        columns_title = 'USAF   WBAN  STATION NAME                  CTRY ST CALL  LAT     LON      ELEV(M) BEGIN    END'
         
         with open(file_path, 'w') as f:
             f.write(title_line + '\n')
             f.write('\n')
             f.write(header.lstrip('\n'))
             f.write('\n')
-            f.write(header_line + '\n')
+            f.write(columns_title + '\n')
             f.write('\n')
             for _, row in self.station_metadata.iterrows():
                 row_strs = [
-                f"{str(row['USAF']):<7}",
-                f"{str(row['WBAN']):<6}",
-                f"{str(row['STATION NAME']):<30}",
-                f"{str(row['CTRY']):<3}",
-                f"{str(row['ST']):>4}",
+                f"{str(row['USAF']):<6}",
+                f"{str(row['WBAN']):>6}",
+                f"{' ' + str(row['STATION NAME']):<30}",
+                f"{str(row['CTRY']):>3}",
+                f"{str(row['ST']):>5}",
                 f"{str(row['CALL']):>5}",
                 f"{float(row['LAT']):+9.3f}",
                 f"{float(row['LON']):+9.3f}",
@@ -387,7 +382,7 @@ Notes:
                     print('Excluding station',row['USAF'],row['WBAN'],row['STATION NAME'],'(not all files with observations are available for download)')
 
         # Construct a new DataFrame from the selected rows
-        station_metadata = pd.DataFrame(filtered_rows)
+        station_metadata = pd.DataFrame(filtered_rows, columns=self.station_metadata.columns)
         
         # Reset row index
         
