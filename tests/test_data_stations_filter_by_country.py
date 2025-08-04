@@ -29,4 +29,4 @@ max_lon = 15
 switzerland_stations = switzerland_and_china_stations.filter_by_coordinates(min_lat,max_lat,min_lon,max_lon)
 
 with pd.option_context('display.max_rows', None):
-  print(switzerland_stations.station_metadata)
+  print(switzerland_stations.meta_data)

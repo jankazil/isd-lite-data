@@ -34,25 +34,25 @@ class Stations():
     countries: list
     us_states: list
     
-    station_metadata: pd.DataFrame
+    meta_data: pd.DataFrame
     
-    def __init__(self,station_metadata: pd.DataFrame):
+    def __init__(self,meta_data: pd.DataFrame):
         
         """
         
         Default constructor.
         
         Args:
-            station_metadata (pd.DataFrame): A Pandas dataframe with station metadata
+            meta_data (pd.DataFrame): A Pandas dataframe with station metadata
         
         """
         
-        self.station_metadata = station_metadata.copy()
+        self.meta_data = meta_data.copy()
         
         # Create lists of countries and US states
         
-        self.countries = sorted(list(self.station_metadata['CTRY'].dropna().unique()))
-        self.us_states = sorted(list(self.station_metadata['ST'].dropna().unique()))
+        self.countries = sorted(list(self.meta_data['CTRY'].dropna().unique()))
+        self.us_states = sorted(list(self.meta_data['ST'].dropna().unique()))
         
         return
     
@@ -78,29 +78,29 @@ class Stations():
         column_names = ['USAF', 'WBAN', 'STATION NAME', 'CTRY', 'ST', 'CALL','LAT', 'LON', 'ELEV(M)', 'BEGIN', 'END']
         
         # Read the data rows from the file
-        station_metadata = pd.read_fwf(file_path,widths=widths,skiprows=22,names=column_names,dtype=str)
+        meta_data = pd.read_fwf(file_path,widths=widths,skiprows=22,names=column_names,dtype=str)
         
         # Strip whitespace
-        station_metadata = station_metadata.map(lambda x: x.strip() if isinstance(x, str) else x)
+        meta_data = meta_data.map(lambda x: x.strip() if isinstance(x, str) else x)
         
         # Convert LAT, LON, ELEV(M) to float if possible; empty strings become NaN
         for col in ['LAT', 'LON', 'ELEV(M)']:
-            station_metadata[col] = pd.to_numeric(station_metadata[col], errors='coerce')
+            meta_data[col] = pd.to_numeric(meta_data[col], errors='coerce')
         
         # Drop rows where both LAT and LON are NaN
-        station_metadata = station_metadata.dropna(subset=['LAT', 'LON'], how='all')
+        meta_data = meta_data.dropna(subset=['LAT', 'LON'], how='all')
         
         # Drop rows where the station name contains 'bogus'
-        station_metadata = station_metadata[~station_metadata['STATION NAME'].str.contains('bogus', case=False, na=False)]
+        meta_data = meta_data[~meta_data['STATION NAME'].str.contains('bogus', case=False, na=False)]
         
         # Convert the 'BEGIN' and 'END' columns from date strings to datetime objects
         for col in ['BEGIN', 'END']:
-            station_metadata[col] = pd.to_datetime(station_metadata[col], format="%Y%m%d", errors='coerce')
+            meta_data[col] = pd.to_datetime(meta_data[col], format="%Y%m%d", errors='coerce')
         
         # Reset index
-        station_metadata = station_metadata.reset_index(drop=True)
+        meta_data = meta_data.reset_index(drop=True)
         
-        return cls(station_metadata)
+        return cls(meta_data)
     
     @classmethod
     def from_url(cls) -> Self:
@@ -177,7 +177,7 @@ Notes:
             f.write('\n')
             f.write(columns_title + '\n')
             f.write('\n')
-            for _, row in self.station_metadata.iterrows():
+            for _, row in self.meta_data.iterrows():
                 row_strs = [
                 f"{str(row['USAF']):<6}",
                 f"{str(row['WBAN']):>6}",
@@ -241,13 +241,13 @@ Notes:
         
         # Filter by country
         
-        station_metadata = self.station_metadata[self.station_metadata["CTRY"].isin(countries)]
+        meta_data = self.meta_data[self.meta_data["CTRY"].isin(countries)]
         
         # Reset row index
         
-        station_metadata = station_metadata.reset_index(drop=True)
+        meta_data = meta_data.reset_index(drop=True)
         
-        return Stations(station_metadata)
+        return Stations(meta_data)
 
     def filter_by_us_state(self,us_states: list[str]) -> Self:
         
@@ -265,13 +265,13 @@ Notes:
         
         # Filter by country
         
-        station_metadata = self.station_metadata[self.station_metadata["ST"].isin(us_states)]
+        meta_data = self.meta_data[self.meta_data["ST"].isin(us_states)]
         
         # Reset row index
         
-        station_metadata = station_metadata.reset_index(drop=True)
+        meta_data = meta_data.reset_index(drop=True)
         
-        return Stations(station_metadata)
+        return Stations(meta_data)
 
     def filter_by_coordinates(self,min_lat: float,max_lat: float,min_lon: float,max_lon: float) -> Self:
         
@@ -294,18 +294,18 @@ Notes:
         
         # Filter by latitude and longitude
         
-        station_metadata = self.station_metadata[ \
-                          (self.station_metadata['LAT'] >= min_lat) & \
-                          (self.station_metadata['LAT'] <= max_lat) & \
-                          (self.station_metadata['LON'] >= min_lon) & \
-                          (self.station_metadata['LON'] <= max_lon)   \
+        meta_data = self.meta_data[ \
+                          (self.meta_data['LAT'] >= min_lat) & \
+                          (self.meta_data['LAT'] <= max_lat) & \
+                          (self.meta_data['LON'] >= min_lon) & \
+                          (self.meta_data['LON'] <= max_lon)   \
                           ]
         
         # Reset row index
         
-        station_metadata = station_metadata.reset_index(drop=True)
+        meta_data = meta_data.reset_index(drop=True)
         
-        return Stations(station_metadata)
+        return Stations(meta_data)
     
     def filter_by_period(self,start_time: datetime,end_time: datetime) -> Self:
         
@@ -326,16 +326,16 @@ Notes:
         
         # Filter by time period
         
-        station_metadata = self.station_metadata[
-                          (self.station_metadata['BEGIN'] <= start_time) &
-                          (self.station_metadata['END'] >= end_time)
+        meta_data = self.meta_data[
+                          (self.meta_data['BEGIN'] <= start_time) &
+                          (self.meta_data['END'] >= end_time)
                           ]
         
         # Reset row index
         
-        station_metadata = station_metadata.reset_index(drop=True)
+        meta_data = meta_data.reset_index(drop=True)
         
-        return Stations(station_metadata)
+        return Stations(meta_data)
     
     def filter_by_data_availability(self,start_time: datetime,end_time: datetime,n_jobs: int = 8,verbose: bool = False) -> Self:
         
@@ -376,7 +376,7 @@ Notes:
             
             future_to_row = {
                 executor.submit(ncei.check_station, start_time.year, end_time.year, row['USAF'], row['WBAN']): row
-                for _, row in self.station_metadata.iterrows()
+                for _, row in self.meta_data.iterrows()
             }
             
             for future in as_completed(future_to_row):
@@ -392,13 +392,13 @@ Notes:
                         print('Excluding station', row['USAF'], row['WBAN'], row['STATION NAME'], '(not all files with observations are available for download)')
         
         # Construct a new DataFrame from the selected rows
-        station_metadata = pd.DataFrame(filtered_rows, columns=self.station_metadata.columns)
+        meta_data = pd.DataFrame(filtered_rows, columns=self.meta_data.columns)
         
         # Reset row index
         
-        station_metadata = station_metadata.reset_index(drop=True)
+        meta_data = meta_data.reset_index(drop=True)
         
-        return Stations(station_metadata)
+        return Stations(meta_data)
     
     def id(self) -> list[list[str]]:
         
@@ -414,7 +414,7 @@ Notes:
         """
         
         # Selects all rows and the first two columns in the dataframe
-        subset = self.station_metadata.iloc[:, 0:2]
+        subset = self.meta_data.iloc[:, 0:2]
         
         # Convert to nested list
         result = subset.values.tolist()
@@ -435,7 +435,7 @@ Notes:
         """
         
         # Selects all rows and the 6th and 7th columns in the dataframe
-        subset = self.station_metadata.iloc[:, 6:8]
+        subset = self.meta_data.iloc[:, 6:8]
         
         # Convert to nested list
         result = subset.values.tolist()
@@ -454,7 +454,7 @@ Notes:
         """
         
         # Selects all rows and the 2nd column in the dataframe
-        subset = self.station_metadata.iloc[:,2]
+        subset = self.meta_data.iloc[:,2]
         
         # Convert to list
         result = subset.values.tolist()
@@ -473,7 +473,7 @@ Notes:
         """
         
         # Selects all rows and the 8th column in the dataframe
-        subset = self.station_metadata.iloc[:,8]
+        subset = self.meta_data.iloc[:,8]
         
         # Convert to list
         result = subset.values.tolist()
@@ -494,7 +494,7 @@ Notes:
         """
         
         # Selects all rows and the 9th and 10th columns in the dataframe
-        subset = self.station_metadata.iloc[:, 9:11]
+        subset = self.meta_data.iloc[:, 9:11]
         
         # Convert to nested list
         result = subset.values.tolist()
@@ -524,7 +524,7 @@ Notes:
         """
         
         # Selects all rows and columns in the dataframe
-        subset = self.station_metadata.iloc[:,:]
+        subset = self.meta_data.iloc[:,:]
         
         # Convert to nested list
         result = subset.values.tolist()

@@ -15,4 +15,4 @@ all_stations = data.Stations.from_url()
 colorado_stations = all_stations.filter_by_us_state(['CO'])
 
 with pd.option_context('display.max_rows', None):
-  print(colorado_stations.station_metadata)
+  print(colorado_stations.meta_data)
