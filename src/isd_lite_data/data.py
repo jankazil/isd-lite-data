@@ -9,6 +9,8 @@ import tempfile
 
 import pandas as pd
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from isd_lite_data import ncei
 
 class Stations():
@@ -335,7 +337,7 @@ Notes:
         
         return Stations(station_metadata)
     
-    def filter_by_data_availability(self,start_time: datetime,end_time: datetime,verbose: bool = False) -> Self:
+    def filter_by_data_availability(self,start_time: datetime,end_time: datetime,n_jobs: int = 8,verbose: bool = False) -> Self:
         
         """
         
@@ -348,6 +350,7 @@ Notes:
         Args:
             start_time (datetime): Start time of period for which files with observations must are available
             end_time (datetime): End time of period for which files with observations must are available
+            n_jobs (int): Maximum number of parallel URL requests
             verbose (bool): If True, print information. Defaults to False.
         
         Returns:
@@ -366,21 +369,28 @@ Notes:
             print('Filtering out stations for which not all files with observations are available in the period of interest',str(start_time),'to',str(end_time))
             print()
         
+        
         filtered_rows = []
         
-        for _, row in self.station_metadata.iterrows():
-            observations_files_available = True
-            for year in range(start_time.year,end_time.year+1):
-                url = ncei.isdlite_data_url(year,row['USAF'],row['WBAN'])
-                observations_files_available = observations_files_available and ncei.url_exists(url)
-            if observations_files_available:
-                filtered_rows.append(row)
-                if verbose:
-                    print('Including station',row['USAF'],row['WBAN'],row['STATION NAME'])
-            else:
-                if verbose:
-                    print('Excluding station',row['USAF'],row['WBAN'],row['STATION NAME'],'(not all files with observations are available for download)')
-
+        with ThreadPoolExecutor(max_workers=n_jobs) as executor:
+            
+            future_to_row = {
+                executor.submit(ncei.check_station, start_time.year, end_time.year, row['USAF'], row['WBAN']): row
+                for _, row in self.station_metadata.iterrows()
+            }
+            
+            for future in as_completed(future_to_row):
+                row = future_to_row[future]
+                observations_files_available = future.result()
+        
+                if observations_files_available:
+                    filtered_rows.append(row)
+                    if verbose:
+                        print('Including station', row['USAF'], row['WBAN'], row['STATION NAME'])
+                else:
+                    if verbose:
+                        print('Excluding station', row['USAF'], row['WBAN'], row['STATION NAME'], '(not all files with observations are available for download)')
+        
         # Construct a new DataFrame from the selected rows
         station_metadata = pd.DataFrame(filtered_rows, columns=self.station_metadata.columns)
         

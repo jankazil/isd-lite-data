@@ -22,7 +22,7 @@ def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
     Args:
         year (int): Gregorian year of the data
         usaf_id (str): Air Force station ID. May contain a letter in the first position.
-        wban_id (str): NCDC WBAN number
+        wban_id (str): Weather Bureau Army Navy station ID.
     
     Returns:
         str: URL of a NCEI ISDLite station data file
@@ -55,6 +55,7 @@ def download_year_range(
         start_year (int): Gregorian year of the first data file to be downloaded
         end_year (int): Gregorian year of the last data file to be downloaded
         usaf_id (str): Air Force station ID. May contain a letter in the first position.
+        wban_id (str): Weather Bureau Army Navy station ID.
         local_dir (Path): Local directory where the downloaded files will be saved.
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
         verbose (bool): If True, print information. Defaults to False.
@@ -81,7 +82,7 @@ def download(year: int,usaf_id: str,wban_id: str,local_dir: Path,refresh: bool =
     Args:
         year (int): Gregorian year of the data
         usaf_id (str): Air Force station ID. May contain a letter in the first position.
-        wban_id (str): NCDC WBAN number
+        wban_id (str): Weather Bureau Army Navy station ID.
         local_dir (Path): Local directory where the downloaded files will be saved.
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
         verbose (bool): If True, print information. Defaults to False.
@@ -191,3 +192,36 @@ def url_exists(url: str) -> bool:
         return response.status_code == 200 # A status code of 200 means the file exists
     except requests.RequestException:
         return False
+
+def check_station(
+    start_year: int,
+    end_year: int,
+    usaf_id: str,
+    wban_id: str,
+    ) -> bool:
+    
+    """
+    
+    Checks whether observation files exist for all years for a given station.
+    
+    For the given station, this function constructs URLs for each year 
+    in the specified date range and checks if data are available at those URLs. 
+    If all required files are present, the station is marked as available.
+    
+    Args:
+        start_year (int): Gregorian year of the first data file to be checked.
+        end_year (int): Gregorian year of the last data file to be checked.
+        usaf_id (str): Air Force station ID. May contain a letter in the first position.
+        wban_id (str): Weather Bureau Army Navy station ID.
+    
+    Returns:
+        bool: True if data are available for all years in the date range, False otherwise.
+    
+    """
+    
+    for year in range(start_year, end_year + 1):
+        url = isdlite_data_url(year, usaf_id, wban_id)
+        if not url_exists(url):
+            return False
+    
+    return True
