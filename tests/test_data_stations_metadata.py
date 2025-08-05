@@ -8,7 +8,7 @@ from isd_lite_data import ncei
 
 from pathlib import Path
 import pandas as pd
-from isd_lite_data import data
+from isd_lite_data import stations
 
 # Directory where data is located/will be placed
 
@@ -16,7 +16,7 @@ data_dir = Path('..') / 'data'
 
 # Get metadata for all stations
 
-all_stations = data.Stations.from_url()
+all_stations = stations.Stations.from_url()
 
 # Filter by country and coordinates
 

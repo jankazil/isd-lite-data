@@ -9,7 +9,7 @@ time period.
 from pathlib import Path
 from datetime import datetime
 from isd_lite_data import ncei
-from isd_lite_data import data
+from isd_lite_data import stations
 
 # Data directory
 
@@ -21,7 +21,7 @@ data_dir = Path('..') / 'data'
 
 # Identify contiguous US (CONUS) stations
 
-all_stations = data.Stations.from_url()
+all_stations = stations.Stations.from_url()
 
 conus_stations = all_stations.filter_by_country(['US'])
 
@@ -53,7 +53,7 @@ file_name = 'conus_stations.txt'
 
 file_path = data_dir / file_name
 
-conus_stations = data.Stations.from_file(file_path)
+conus_stations = stations.Stations.from_file(file_path)
 
 # Filter the stations by whether observations are available for download for the given period
 

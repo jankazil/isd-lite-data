@@ -7,7 +7,7 @@ Downloads IDSLite station observations for stations in a given stations database
 from pathlib import Path
 from datetime import datetime
 from isd_lite_data import ncei
-from isd_lite_data import data
+from isd_lite_data import stations
 
 #
 # Download data from stations in the contiguous US (CONUS) with data for a given period
@@ -28,7 +28,7 @@ file_name = 'CONUS.' + str(start_date) + '-' + str(end_date) + '.txt'
 
 file_path = data_dir / file_name
 
-conus_stations = data.Stations.from_file(file_path)
+conus_stations = stations.Stations.from_file(file_path)
 
 # Download data
 

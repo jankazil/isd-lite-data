@@ -14,7 +14,7 @@ The project consists of the following modules:
   - Downloading ISDLite data files
   - Downloading multiple ISDLite data files in parallel using threading
 
-- **`data.py`**  
+- **`stations.py`**  
   Classes and functions for:
   - Loading ISD station metadata from the web or local file
   - Saving ISD station metadata to file

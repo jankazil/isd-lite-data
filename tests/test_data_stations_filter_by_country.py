@@ -13,11 +13,11 @@ use the geographic filter to separate the two.
 
 from pathlib import Path
 import pandas as pd
-from isd_lite_data import data
+from isd_lite_data import stations
 
 data_dir = Path('..') / 'data'
 
-all_stations = data.Stations.from_url()
+all_stations = stations.Stations.from_url()
 
 switzerland_and_china_stations = all_stations.filter_by_country(['CH'])
 
