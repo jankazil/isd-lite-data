@@ -237,6 +237,9 @@ def download_file(url: str,local_file_path: Path,refresh: bool = False, verbose:
         url (str): URL of file to download
         local_file_path (Path): Local paths of downloaded files
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
+                                  When False:
+                                  - if the local ETag of the file matches its ETag online, then the file will not be downloaded.
+                                  - if the local ETag of the file differs from its ETag online, then the file will be downloaded.
         verbose (bool): If True, print information. Defaults to False.
     
     Returns:
@@ -270,13 +273,13 @@ def download_file(url: str,local_file_path: Path,refresh: bool = False, verbose:
         
         if local_etag == etag:
             if verbose:
-              print(url, 'already available locally as ', str(local_file_path), '. Skipping download.')
+                print(url, 'available locally as', str(local_file_path), 'and ETag matches ETag online. Skipping download.')
             return
+        else:
+            if verbose:
+                print(url, 'available locally as', str(local_file_path), 'and ETag differs from ETag online. Proceeding to download.')
     
     with requests.get(url, stream=True) as r:
-        
-        if verbose:
-            print('Downloading', url)
         
         r.raise_for_status()
         
@@ -284,6 +287,9 @@ def download_file(url: str,local_file_path: Path,refresh: bool = False, verbose:
             for chunk in r.iter_content(chunk_size=8192):
                 if chunk:
                     f.write(chunk)
+    
+    if verbose:
+        print(url,'downloaded.')
     
     # Save ETag
     
