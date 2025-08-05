@@ -30,9 +30,29 @@ def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
     
     """
     
-    url = isd_lite_url + '/' + str(year) + '/' + usaf_id + '-' + wban_id + '-' + str(year) + '.gz'
+    url = isd_lite_url + '/' + str(year) + '/' + ISDLite_data_file_name(year,usaf_id,wban_id)
     
     return url
+    
+def ISDLite_data_file_name(year: int,usaf_id: str,wban_id: str) -> str:
+    
+    """
+    
+    Constructs the name of a ISDLite data file stored locally.
+    
+    Args:
+      year (int): Gregorian year of the data
+        usaf_id (str): Air Force station ID. May contain a letter in the first position.
+        wban_id (str): Weather Bureau Army Navy station ID.
+    
+    Returns:
+        str: Local file name.
+    
+    """
+    
+    file_name = usaf_id + '-' + wban_id + '-' + str(year) + '.gz'
+    
+    return file_name
     
 def download_stations(local_file: Path):
     
@@ -90,9 +110,7 @@ def download_one(
     
     # Construct local file path
     
-    local_file_name = usaf_id + '-' + wban_id + '-' + str(year) + '.gz'
-    
-    local_file_path = local_dir / local_file_name
+    local_file_path = local_dir / ISDLite_data_file_name(year,usaf_id,wban_id)
     
     # Download file
     
@@ -152,9 +170,7 @@ def download_many(
           
           urls.append(isdlite_data_url(year,usaf_id,wban_id))
           
-          local_file_name = usaf_id + '-' + wban_id + '-' + str(year) + '.gz'
-          
-          local_file_paths.append(local_dir / local_file_name)
+          local_file_paths.append(local_dir / ISDLite_data_file_name(year,usaf_id,wban_id))
           
         download_threaded(urls,local_file_paths,n_jobs=n_jobs,refresh=refresh,verbose=verbose)
         
