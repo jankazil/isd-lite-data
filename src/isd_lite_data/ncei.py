@@ -1,5 +1,5 @@
 """
-Tools for download of ISDLite data from National Centers for Environmental Information (NCEI), https://www.ncei.noaa.gov. 
+Tools for download of ISD Lite data from National Centers for Environmental Information (NCEI), https://www.ncei.noaa.gov. 
 """
 
 from pathlib import Path
@@ -8,7 +8,7 @@ import hashlib
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-# ISDLite data URL
+# ISD Lite data URL
 isd_lite_url = 'https://www.ncei.noaa.gov/pub/data/noaa/isd-lite'
 
 # Integrated Surface Database (ISD) Station History (station meta data) file
@@ -18,7 +18,7 @@ def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
     
     """
     
-    Constructs the URL of a NCEI ISDLite station data file.
+    Constructs the URL of a NCEI ISD Lite station data file.
     
     Args:
         year (int): Gregorian year of the data
@@ -26,7 +26,7 @@ def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
         wban_id (str): Weather Bureau Army Navy station ID.
     
     Returns:
-        str: URL of a NCEI ISDLite station data file
+        str: URL of a NCEI ISD Lite station data file
     
     """
     
@@ -38,7 +38,7 @@ def ISDLite_data_file_name(year: int,usaf_id: str,wban_id: str) -> str:
     
     """
     
-    Constructs the name of a ISDLite data file stored locally.
+    Constructs the name of a NCEI ISD Lite data file.
     
     Args:
       year (int): Gregorian year of the data
@@ -89,7 +89,7 @@ def download_one(
     
     """
     
-    Downloads an ISDLite data file for a given year and station.
+    Downloads an ISD Lite data file for a given year and station.
     
     Args:
         year (int): Gregorian year of the data
@@ -130,7 +130,7 @@ def download_many(
     
     """
     
-    Downloads ISDLite data files for a given year range (inclusive) and given station IDs,
+    Downloads ISD Lite data files for a given year range (inclusive) and given station IDs,
     even for files that already exists locally. A given number of parallel threads is used
     to accelerate download. The routine is parallelized over stations, but not over the 
     year range.
