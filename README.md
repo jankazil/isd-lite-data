@@ -10,14 +10,14 @@ The project consists of the following modules:
 
 - **`ncei.py`**  
   Functions for:
-  - Downloading ISD station metadata (`isd-history.txt`)
+  - Downloading ISDLite station metadata (`isd-history.txt`)
   - Downloading ISDLite data files
   - Downloading multiple ISDLite data files in parallel using threading
 
 - **`stations.py`**  
   Classes and functions for:
-  - Loading ISD station metadata from the web or local file
-  - Saving ISD station metadata to file
+  - Loading ISDLite station metadata from the web or local file
+  - Saving ISDLite station metadata to file
   - Listing available countries and US states
   - Filtering stations by:
     - country
@@ -48,7 +48,7 @@ The project consists of the following modules:
 All test scripts demonstrate usage and serve as functional examples. See:
 
 - `test_ncei_download_stations.py`  
-  Download the ISD station metadata file (`isd-history.txt`) and save it locally.
+  Download the ISDLite station metadata file (`isd-history.txt`) and save it locally.
 
 - `test_data_stations.py`  
   Initialize the station metadata database and print all available country and US state codes.
@@ -73,15 +73,15 @@ All test scripts demonstrate usage and serve as functional examples. See:
 Scripts are intended to be executed in the following sequence:
 
 - `scripts/Switzerland_Metadata_Download.py`  
-  Download the ISD station metadata file and produce:
+  Download the ISDLite station metadata file and produce:
   - `data/switzerland_stations.2020-2023.txt`:  
      station metadata of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31.
 - `scripts/Switzerland_Observations_Download.py`  
-  Download the ISD station observations and produce:
+  Download the ISDLite station observations and produce:
   - `data/USAF_ID-WBAN_ID-YYYY.gz`:  
      files with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
 - `scripts/Switzerland_Observations_Load.py`  
-  Load the ISD station observations into an xarray Dataset and produce:
+  Load the ISDLite station observations into an xarray Dataset and produce:
   - `data/switzerland_stations.2020-2023.nc`:  
      netCDF file with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
 
@@ -90,15 +90,15 @@ Scripts are intended to be executed in the following sequence:
 Scripts are intended to be executed in the following sequence:
 
 - `scripts/CONUS_Metadata_Download.py`  
-  Download the ISD station metadata file and produce:
+  Download the ISDLite station metadata file and produce:
   - `data/conus_stations.2020-2025.txt`:  
      station metadata of CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
 - `scripts/CONUS_Observations_Download.py`  
-  Download the ISD station observations and produce:
+  Download the ISDLite station observations and produce:
   - `data/USAF_ID-WBAN_ID-YYYY.gz`:  
      files with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31. 
 - `scripts/CONUS_Observations_Load.py`  
-  Load the ISD station observations into an xarray Dataset and produce:
+  Load the ISDLite station observations into an xarray Dataset and produce:
   - `data/conus_stations.2020-2025.nc`:  
      netCDF file with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
 
@@ -108,7 +108,7 @@ Scripts are intended to be executed in the following sequence:
 - Download operations can be parallelized for speed with a user-specified number > 1 of concurrent download requests.
 - Download operations will check if local ISDLite metadata files and observation files are present; if they are and their ETag matches their ETag online, they will not be downloaded, unless instructed with refresh = True.
 - Loading of thousands of observation data files from disk can be slow.
-- Country codes in the ISD metadata are not always unambiguous. For example, `'CH'` is used for both Switzerland and China. Use geographic filtering to disambiguate.
+- Country codes in the ISDLite metadata are not always unambiguous. For example, `'CH'` is used for both Switzerland and China. Use geographic filtering to disambiguate.
 - The CONUS and Switzerland scripts demonstrate a practical pipeline for identifiying, downloading, loading to memory, and saving as netCDF files regional ISDLite observation data. The Switzerland contain fewer stations than the CONUS scripts and are therefore faster.
 
 ## Disclaimer
