@@ -2,14 +2,16 @@
 Classes to hold ISD Lite data and perform operations on them.
 """
 
-from typing import Self
-from pathlib import Path
-from datetime import datetime
-import tempfile
-
-import pandas as pd
-
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
+import gzip
+from pathlib import Path
+import tempfile
+from typing import Self
+
+import numpy as np
+import pandas as pd
+import xarray as xr
 
 from isd_lite_data import ncei
 
@@ -34,8 +36,31 @@ class Stations():
     countries: list
     us_states: list
     
+    # ISD station metadata
+    
     meta_data: pd.DataFrame
     
+    # ISD Lite observations
+    
+    observations: xr.Dataset
+    
+    # Observation variable names, long names, and units
+    
+    var_names = ['T', 'TD', 'SLP', 'WD', 'WS', 'SKY', 'PREC1H', 'PREC6H']
+    
+    var_long_names = [
+    'Air temperature at 2 m above ground',
+    'Dew point temperature at 2 m above ground',
+    'Sea level pressure',
+    'Wind direction',
+    'Wind speed at 10 m above ground',
+    'Sky condition',
+    '1 h accumulated precipitation',
+    '6 h accumulated precipitation'
+    ]
+    
+    var_units = ['C','C','hPa','angular degrees','m s-1','','mm','mm']
+        
     def __init__(self,meta_data: pd.DataFrame):
         
         """
@@ -75,7 +100,7 @@ class Stations():
         
         # Define column widths and names
         widths = [6,6,30,3,5,5,9,9,8,9,9]
-        column_names = ['USAF', 'WBAN', 'STATION NAME', 'CTRY', 'ST', 'CALL','LAT', 'LON', 'ELEV(M)', 'BEGIN', 'END']
+        column_names = ['USAF', 'WBAN', 'STATION_NAME', 'CTRY', 'ST', 'CALL', 'LAT', 'LON', 'ELEV', 'BEGIN', 'END']
         
         # Read the data rows from the file
         meta_data = pd.read_fwf(file_path,widths=widths,skiprows=22,names=column_names,dtype=str)
@@ -83,15 +108,15 @@ class Stations():
         # Strip whitespace
         meta_data = meta_data.map(lambda x: x.strip() if isinstance(x, str) else x)
         
-        # Convert LAT, LON, ELEV(M) to float if possible; empty strings become NaN
-        for col in ['LAT', 'LON', 'ELEV(M)']:
+        # Convert LAT, LON, ELEV to float if possible; empty strings become NaN
+        for col in ['LAT', 'LON', 'ELEV']:
             meta_data[col] = pd.to_numeric(meta_data[col], errors='coerce')
         
         # Drop rows where both LAT and LON are NaN
         meta_data = meta_data.dropna(subset=['LAT', 'LON'], how='all')
         
         # Drop rows where the station name contains 'bogus'
-        meta_data = meta_data[~meta_data['STATION NAME'].str.contains('bogus', case=False, na=False)]
+        meta_data = meta_data[~meta_data['STATION_NAME'].str.contains('bogus', case=False, na=False)]
         
         # Convert the 'BEGIN' and 'END' columns from date strings to datetime objects
         for col in ['BEGIN', 'END']:
@@ -168,7 +193,7 @@ Notes:
   'isd-inventory.txt' or 'isd-inventory.csv' file. 
 """
 
-        columns_title = 'USAF   WBAN  STATION NAME                  CTRY ST CALL  LAT     LON      ELEV(M) BEGIN    END'
+        columns_title = 'USAF   WBAN  STATION NAME                  CTRY ST CALL  LAT     LON      ELEV    BEGIN    END'
         
         with open(file_path, 'w') as f:
             f.write(title_line + '\n')
@@ -181,13 +206,13 @@ Notes:
                 row_strs = [
                 f"{str(row['USAF']):<6}",
                 f"{str(row['WBAN']):>6}",
-                f"{' ' + str(row['STATION NAME']):<30}",
+                f"{' ' + str(row['STATION_NAME']):<30}",
                 f"{str(row['CTRY']):>3}",
                 f"{str(row['ST']):>5}",
                 f"{str(row['CALL']):>5}",
                 f"{float(row['LAT']):+9.3f}",
                 f"{float(row['LON']):+9.3f}",
-                f"{float(row['ELEV(M)']):+8.1f}",
+                f"{float(row['ELEV']):+8.1f}",
                 f"{row['BEGIN'].strftime('%Y%m%d'):>9}",
                 f"{row['END'].strftime('%Y%m%d'):>9}"
                 ]
@@ -386,10 +411,10 @@ Notes:
                 if observations_files_available:
                     filtered_rows.append(row)
                     if verbose:
-                        print('Including station', row['USAF'], row['WBAN'], row['STATION NAME'])
+                        print('Including station', row['USAF'], row['WBAN'], row['STATION_NAME'])
                 else:
                     if verbose:
-                        print('Excluding station', row['USAF'], row['WBAN'], row['STATION NAME'], '(not all files with observations are available for download)')
+                        print('Excluding station', row['USAF'], row['WBAN'], row['STATION_NAME'], '(not all files with observations are available for download)')
         
         # Construct a new DataFrame from the selected rows
         meta_data = pd.DataFrame(filtered_rows, columns=self.meta_data.columns)
@@ -530,4 +555,271 @@ Notes:
         result = subset.values.tolist()
         
         return result
+    
+    def load_observations(self,data_dir: Path, start_year: int, end_year: int,verbose: bool = False):
         
+        """
+        Loads ISD Lite station observations for a given year range (inclusive)
+        from (gzipped) NCEI ISD Lite data files into the xarray object self.observations.
+        
+        The files must already exist in the specified directory,
+        having been previously downloaded from the web.
+        
+        Args:
+            data_dir (pathlib.Path): Local directory containing ISD-Lite data files.
+            start_year (int): Gregorian year of the first data file to be read
+            end_year (int): Gregorian year of the last data file to be read
+            verbose (bool): If True, print information. Defaults to False.
+        """
+        
+        #
+        # Load data for each station and the year range
+        #
+        
+        dfs = []
+        
+        usaf_ids = []
+        wban_ids = []
+        station_ids = []
+        station_names = []
+        ctrys = []
+        ussts = []
+        lats = []
+        lons = []
+        elevs = []
+        
+        for row in self.meta_data.itertuples():
+            
+            if verbose:
+                print('Loading observations for station',row.STATION_NAME)
+            
+            df = self.read_station_observations(data_dir,start_year,end_year,row.USAF,row.WBAN)
+            
+            dfs.append(df)
+            
+            usaf_ids.append(row.USAF)
+            wban_ids.append(row.WBAN)
+            station_ids.append(row.USAF + '-' + row.WBAN)
+            station_names.append(row.STATION_NAME)
+            ctrys.append(row.CTRY)
+            ussts.append(row.ST)
+            lats.append(row.LAT)
+            lons.append(row.LON)
+            elevs.append(row.ELEV)
+        
+        #
+        # Create common times
+        #
+        
+        # Union of all time values
+        
+        all_times = pd.Index([])
+        for df in dfs:
+            all_times = all_times.union(df.index)
+        
+        all_times = all_times.sort_values()
+        
+        # Convert to numpy array of dtype datetime64[ns]
+        all_times = pd.to_datetime(all_times).values
+        
+        #
+        # Construct a dictionary, which for each variable, holds
+        # a numpy array with the data as a function of time and station
+        #
+        
+        # Collect all columns containing variables (that means exclude time)
+        columns = [col for col in dfs[0].columns if col != 'time']
+        
+        data_vars = {}
+        for var in columns:
+            # Numpy array with the dimensions all times, stations
+            arr = np.full((len(all_times), len(dfs)), np.nan)
+            for i, df in enumerate(dfs):
+                times = df.index
+                s = pd.Series(df[var].values, index=times)
+                arr[:, i] = s.reindex(all_times).values
+            data_vars[var] = (('time', 'station'), arr)
+        
+        #
+        # Create an xarray dataset that holds the data for each variable
+        # as a function of time and station
+        #
+        
+        ds = xr.Dataset(data_vars,coords={'time': all_times, 'station': station_ids})
+        
+        ds['time'].attrs['long_name'] = 'UTC'
+        
+        # Set long names and units
+        
+        for var_name, var_long_name, var_unit in zip(self.var_names,self.var_long_names,self.var_units):
+            ds[var_name].attrs['long_name'] = var_long_name
+            ds[var_name].attrs['units'] = var_unit
+        
+        #
+        # Add variables that are a function of station only (as data variables)
+        #
+        
+        ds = ds.assign(
+            lat=("station", lats),
+            lon=("station", lons),
+            elevation=("station", elevs),
+            station_name=("station", station_names),
+            station_id=("station", station_ids),
+            country=("station", ctrys),
+            us_state=("station", ussts)
+        )
+        
+        # Set long names and units
+        
+        ds['lat'].attrs['long_name'] = 'Latitude'
+        ds['lat'].attrs['units'] = 'degrees north'
+        
+        ds['lon'].attrs['long_name'] = 'Longitude'
+        ds['lon'].attrs['units'] = 'degrees east'
+        
+        ds['elevation'].attrs['long_name'] = 'Elevation above sea level'
+        ds['elevation'].attrs['units'] = 'm'
+        
+        ds['station_name'].attrs['long_name'] = 'Station name'
+        ds['station_name'].attrs['units'] = ''
+        
+        ds['station_id'].attrs['long_name'] = 'Station USAF and WBAN id'
+        ds['station_id'].attrs['units'] = ''
+        
+        ds['country'].attrs['long_name'] = 'Country code'
+        ds['country'].attrs['units'] = ''
+        
+        ds['us_state'].attrs['long_name'] = 'US state'
+        ds['us_state'].attrs['units'] = ''
+        
+        #
+        # Add global attributes
+        #
+        
+        ds.attrs['title'] = 'ISD-Lite station observations'
+        ds.attrs['source'] = 'National Centers for Environmental Information (NCEI)'
+        ds.attrs['URL'] = ncei.isd_lite_url
+        
+        #
+        # Assign to instance variable
+        #
+        
+        self.observations = ds
+        
+        return
+    
+    def write_observations2netcdf(self,file_path : Path):
+        
+        """
+        Writes the xarray self.observations into a netCDF file.
+        
+        Args:
+            file_path (Path): Path to the netCDF file. The file will be overwritten if it exists.
+        """
+        
+        encoding = {
+            "time": {
+                "dtype": "float64",
+                "units": "seconds since 1970-01-01T00:00:00Z",
+                "calendar": "proleptic_gregorian"
+            },
+            **{
+                var: {"dtype": "float32"} for var in self.observations.data_vars if np.issubdtype(self.observations[var].dtype, np.floating)
+            }
+        }
+        
+        self.observations.to_netcdf(file_path,encoding=encoding)
+        
+        return
+    
+    def read_station_observations(
+        self,
+        data_dir: Path,
+        start_year: int,
+        end_year: int,
+        usaf_id: str,
+        wban_id: str,
+        missing_value=-9999) -> pd.DataFrame:
+        
+        """
+        Reads ISD Lite observations from (gzipped) NCEI ISD Lite data files
+        for the given range of years (inclusive), for the given station.
+        
+        The files must already exist in the specified directory, having been previously downloaded from the web.
+        
+        The data are read and processed based on their description in
+        
+        https://www.ncei.noaa.gov/pub/data/noaa/isd-lite/isd-lite-format.pdf
+        https://www.ncei.noaa.gov/pub/data/noaa/isd-lite/isd-lite-technical-document.pdf
+        
+        Args:
+            data_dir (Path): Path to directory holding (gzipped) NCEI ISD Lite data files.
+            year (int): Gregorian year of the data
+            usaf_id (str): Air Force station ID. May contain a letter in the first position.
+            wban_id (str): Weather Bureau Army Navy station ID.
+            missing_value: Integer or floating point number corresponding to missing data values in the file.
+        Returns:
+            pandas.Dataframe : A pandas dataframe holding variable names, times, and obsevations
+                               as a function of time for the given station and the given year range.
+        """
+        
+        dfs = []
+        
+        for year in range(start_year,end_year+1):
+            
+            file_path = data_dir / ncei.ISDLite_data_file_name(year,usaf_id,wban_id)
+            
+            if not file_path.exists():
+                raise ValueError(str(file_path) + ' does not exist.')
+            
+            # Read the gzipped file as text
+            
+            with gzip.open(file_path, 'rt') as f:
+                # Read all lines, split by whitespace
+                df = pd.read_csv( 
+                f,
+                sep=r'\s+',
+                header=None,
+                na_values=missing_value,
+                dtype = {0: int,
+                         1: int,
+                         2: int,
+                         3: int,
+                         4: np.float32,
+                         5: np.float32,
+                         6: np.float32,
+                         7: np.float32,
+                         8: np.float32,
+                         9: np.float32,
+                         10: np.float32,
+                         11: np.float32})
+            
+            # Remove trace precipitation values
+            
+            for jj in range(10,12):
+              col = df.iloc[:,jj]
+              mask = (col == -1)
+              df.iloc[mask,jj] = 0
+            
+            # Multiply colums with appropriate scaling factors
+            
+            cols = [4,5,6,8,10,11]
+            df.iloc[:, cols] = 0.1 * df.iloc[:, cols]
+            
+            # Extract the time columns and convert them to datetime objects
+            df['time'] = pd.to_datetime(df.iloc[:,0:4].astype(str).agg(' '.join,axis=1), format='%Y %m %d %H')
+            
+            # Cut the time columns
+            df = df.drop(columns=[0,1,2,3])
+            
+            dfs.append(df)
+            
+        df_merged = pd.concat(dfs, ignore_index=True)
+        
+        # Set variable names
+        df_merged.columns = self.var_names + ['time']
+        
+        # Set time as index
+        df_merged = df_merged.set_index('time')
+        
+        return df_merged

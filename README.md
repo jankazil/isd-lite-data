@@ -31,6 +31,8 @@ The project consists of the following modules:
     - station coordinates
     - station elevation
     - period with observations
+  - Loading station observations from ISDLite data files into an xarray dataset
+  - Saving station observations as a netCDF file
 
 ## Dependencies
 
