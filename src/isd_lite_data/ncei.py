@@ -17,7 +17,6 @@ isd_lite_stations_url = 'https://www.ncei.noaa.gov/pub/data/noaa/isd-history.txt
 def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
     
     """
-    
     Constructs the URL of a NCEI ISD Lite station data file.
     
     Args:
@@ -27,7 +26,6 @@ def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
     
     Returns:
         str: URL of a NCEI ISD Lite station data file
-    
     """
     
     url = isd_lite_url + '/' + str(year) + '/' + ISDLite_data_file_name(year,usaf_id,wban_id)
@@ -37,7 +35,6 @@ def isdlite_data_url(year: int,usaf_id: str,wban_id: str) -> str:
 def ISDLite_data_file_name(year: int,usaf_id: str,wban_id: str) -> str:
     
     """
-    
     Constructs the name of a NCEI ISD Lite data file.
     
     Args:
@@ -47,7 +44,6 @@ def ISDLite_data_file_name(year: int,usaf_id: str,wban_id: str) -> str:
     
     Returns:
         str: Local file name.
-    
     """
     
     file_name = usaf_id + '-' + wban_id + '-' + str(year) + '.gz'
@@ -57,15 +53,10 @@ def ISDLite_data_file_name(year: int,usaf_id: str,wban_id: str) -> str:
 def download_stations(local_file: Path):
     
     """
-    
     Downloads the Integrated Surface Database (ISD) Station History (station meta data) file
     
     Args:
         local_file (Path): Local file where the downloaded file will be saved.
-    
-    Returns:
-        
-    
     """
     
     # Download file
@@ -88,7 +79,6 @@ def download_one(
     verbose : bool = False) -> Path:
     
     """
-    
     Downloads an ISD Lite data file for a given year and station.
     
     Args:
@@ -101,7 +91,6 @@ def download_one(
     
     Returns:
         Path: Local path of the downloaded file.
-    
     """
     
     # Construct data URL and get ETag
@@ -129,7 +118,6 @@ def download_many(
     ) -> list[Path]:
     
     """
-    
     Downloads ISD Lite data files for a given year range (inclusive) and given station IDs,
     even for files that already exists locally. A given number of parallel threads is used
     to accelerate download. The routine is parallelized over stations, but not over the 
@@ -150,7 +138,6 @@ def download_many(
     
     Returns:
         list[Path]: List of local paths of the downloaded files.
-    
     """
     
     # Construct URLs and local file paths 
@@ -186,7 +173,6 @@ def check_station(
     ) -> bool:
     
     """
-    
     Checks whether observation files exist online for the given year range (inclusive) for a given station.
     
     For the given station, this function constructs URLs for each year 
@@ -201,7 +187,6 @@ def check_station(
     
     Returns:
         bool: True if data are available for all years in the date range, False otherwise.
-    
     """
     
     for year in range(start_year, end_year + 1):
@@ -214,7 +199,6 @@ def check_station(
 def download_threaded(urls: list[str],paths: list[Path],n_jobs = 8,refresh: bool = False,verbose: bool = False):
     
     """
-    
     Downloads a given number of files from given URLs to given local paths, in parallel.
     
     Args:
@@ -223,10 +207,6 @@ def download_threaded(urls: list[str],paths: list[Path],n_jobs = 8,refresh: bool
         n_jobs (int): Maximum number of parallel downloads
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
         verbose (bool): If True, print information. Defaults to False.
-    
-    Returns:
-        
-    
     """
     
     if len(urls) != len(paths):
@@ -246,7 +226,6 @@ def download_threaded(urls: list[str],paths: list[Path],n_jobs = 8,refresh: bool
 def download_file(url: str,local_file_path: Path,refresh: bool = False, verbose: bool = False):
     
     """
-    
     Downloads a file from a given URL to a given local path.
     
         Args:
@@ -257,9 +236,6 @@ def download_file(url: str,local_file_path: Path,refresh: bool = False, verbose:
                                   - if the local ETag of the file matches its ETag online, then the file will not be downloaded.
                                   - if the local ETag of the file differs from its ETag online, then the file will be downloaded.
         verbose (bool): If True, print information. Defaults to False.
-    
-    Returns:
-        
     """
     
     # Get ETag
@@ -317,7 +293,6 @@ def download_file(url: str,local_file_path: Path,refresh: bool = False, verbose:
 def url_exists(url: str) -> bool:
     
     """
-    
     Checks if a file exists at a given URL.
     
     Args:
@@ -325,7 +300,6 @@ def url_exists(url: str) -> bool:
         
     Returns:
         bool: True if file exists at given URL, False othewise
-    
     """
     
     try:
