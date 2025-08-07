@@ -40,6 +40,8 @@ The project consists of the following modules:
 - Required Python packages:
   - `requests`
   - `pandas`
+  - `numpy`
+  - `xarray`
 
 ## Usage
 
@@ -66,21 +68,48 @@ All test scripts demonstrate usage and serve as functional examples. See:
 - `test_ncei_download_year_range.py`  
   Download ISDLite data files for a given range of years for a given list of stations.
 
+### Regional Downloads - Switzerland
+
+Scripts are intended to be executed in the following sequence:
+
+- `scripts/Switzerland_Metadata_Download.py`  
+  Download the ISD station metadata file and produce:
+  - `data/switzerland_stations.2020-2023.txt`:  
+     station metadata of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31.
+- `scripts/Switzerland_Observations_Download.py`  
+  Download the ISD station observations and produce:
+  - `data/USAF_ID-WBAN_ID-YYYY.gz`:  
+     files with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
+- `scripts/Switzerland_Observations_Load.py`  
+  Load the ISD station observations into an xarray Dataset and produce:
+  - `data/switzerland_stations.2020-2023.nc`:  
+     netCDF file with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
+
 ### Regional Downloads - Contiguous United States (CONUS)
 
-- `scripts/Download_CONUS_Stations_Metadata.py`  
-  Download the ISD station metadata file and produce:
-  - `conus_stations.txt`: a list of stations located in the contiguous US (CONUS)
-  - `CONUS.2020-12-03 00:00:00-2025-07-31 00:00:00.txt`: a list of CONUS stations with observations between 2020-12-03 and 2025-07-31
+Scripts are intended to be executed in the following sequence:
 
-- `scripts/Download_CONUS_Stations_Observations.py`  
-  Read the list of CONUS stations with data in the period 2020-12-03 to 2025-07-31 and download the corresponding ISDLite data files.
+- `scripts/CONUS_Metadata_Download.py`  
+  Download the ISD station metadata file and produce:
+  - `data/conus_stations.2020-2025.txt`:  
+     station metadata of CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
+- `scripts/CONUS_Observations_Download.py`  
+  Download the ISD station observations and produce:
+  - `data/USAF_ID-WBAN_ID-YYYY.gz`:  
+     files with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31. 
+- `scripts/CONUS_Observations_Load.py`  
+  Load the ISD station observations into an xarray Dataset and produce:
+  - `data/conus_stations.2020-2025.nc`:  
+     netCDF file with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
 
 ## Notes
 
 - Download operations are read-only and anonymous; no credentials are required.
+- Download operations can be parallelized for speed with a user-specified number > 1 of concurrent download requests.
+- Download operations will check if local ISDLite metadata files and observation files are present; if they are and their ETag matches their ETag online, they will not be downloaded, unless instructed with refresh = True.
+- Loading of thousands of observation data files from disk can be slow.
 - Country codes in the ISD metadata are not always unambiguous. For example, `'CH'` is used for both Switzerland and China. Use geographic filtering to disambiguate.
-- The CONUS scripts demonstrate a practical pipeline for extracting and downloading regional observational datasets using ISDLite.
+- The CONUS and Switzerland scripts demonstrate a practical pipeline for identifiying, downloading, loading to memory, and saving as netCDF files regional ISDLite observation data. The Switzerland contain fewer stations than the CONUS scripts and are therefore faster.
 
 ## Disclaimer
 

@@ -10,27 +10,32 @@ from isd_lite_data import ncei
 from isd_lite_data import stations
 
 #
-# Download data from stations in the contiguous US (CONUS) with data for a given period
+# Directory where data is located/will be placed
 #
-
-# Data directory
 
 data_dir = Path('..') / 'data'
 
+#
+# Download data from stations in the contiguous US with data for a given period
+#
+
 # Period of interest
 
-start_date = datetime(2020, 12, 3)
-end_date = datetime(2025, 7, 31)
+start_year = 2020
+end_year = 2025
 
-# Load stations in the contiguous US (CONUS)
+start_date = datetime(start_year, 1, 1)
+end_date = datetime(end_year, 7, 31)
 
-file_name = 'CONUS.' + str(start_date) + '-' + str(end_date) + '.txt'
+# Load stations contiguous US for the period of interest
+
+file_name = 'conus_stations.' + str(start_date.year) + '-' + str(end_date.year) + '.txt'
 
 file_path = data_dir / file_name
 
 conus_stations = stations.Stations.from_file(file_path)
 
-# Download data
+# Download observations
 
 local_files = ncei.download_many(
     start_date.year,
