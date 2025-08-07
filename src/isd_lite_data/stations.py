@@ -1,5 +1,5 @@
 """
-Classes to hold ISDLite data and perform operations on them.
+Classes to hold ISD Lite data and perform operations on them.
 """
 
 from typing import Self
@@ -213,7 +213,7 @@ Notes:
     def print_us_states(self):
         
         """
-        Print two-letter US states codes of the ISDLite stations
+        Print two-letter US states codes of the ISD Lite stations
         """
         
         print()
