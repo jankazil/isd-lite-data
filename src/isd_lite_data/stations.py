@@ -336,16 +336,17 @@ Notes:
         
         """
         
-        Filters the station metadata by data period.
+        Filters the station metadata by time period. Stations that have nominally observations
+        that cover the entire requested time period are kept, those that don't are filtered out.
         
         
         Args:
-            start_time (datetime): Start time of period for which observations are nominally available
-            end_time (datetime): End time of period for which station observations are nominally available
+            start_time (datetime): Start time of period for which observations are required
+            end_time (datetime): End time of period for which station observations are required
         
         Returns:
             Stations: An instance of Stations holding the ISD station metadata for the stations
-                      whose data period fully covers the period given by the start and end time.
+                      whose data period fully covers, nominally, the period given by the start and end time.
         
         """
         
@@ -373,8 +374,8 @@ Notes:
         This can take a while, depending on the responsiveness of the NCEI server.
         
         Args:
-            start_time (datetime): Start time of period for which files with observations must are available
-            end_time (datetime): End time of period for which files with observations must are available
+            start_time (datetime): Start time of period for which files with observations must be available for download
+            end_time (datetime): End time of period for which files with observations must be available for download
             n_jobs (int): Maximum number of parallel URL requests
             verbose (bool): If True, print information. Defaults to False.
         
@@ -754,7 +755,8 @@ Notes:
         
         Args:
             data_dir (Path): Path to directory holding (gzipped) NCEI ISD Lite data files.
-            year (int): Gregorian year of the data
+            start_year (int): Gregorian year of the first data file to be read
+            end_year (int): Gregorian year of the last data file to be read
             usaf_id (str): Air Force station ID. May contain a letter in the first position.
             wban_id (str): Weather Bureau Army Navy station ID.
             missing_value: Integer or floating point number corresponding to missing data values in the file.
