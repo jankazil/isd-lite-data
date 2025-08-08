@@ -8,13 +8,13 @@ ISDLite is a product derived from [ISD](https://www.ncei.noaa.gov/products/land-
 
 The project consists of the following modules:
 
-- **`ncei.py`**  
+- **`ncei`**  
   Functions for:
   - Downloading ISDLite station metadata (`isd-history.txt`)
   - Downloading ISDLite data files
   - Downloading multiple ISDLite data files in parallel using threading
 
-- **`stations.py`**  
+- **`stations`**  
   Classes and functions for:
   - Loading ISDLite station metadata from the web or local file
   - Saving ISDLite station metadata to file
@@ -33,6 +33,10 @@ The project consists of the following modules:
     - period with observations
   - Loading station observations from ISDLite data files into an xarray dataset
   - Saving station observations as a netCDF file
+
+## Public API
+
+The list of modules, classes, and functions is documented in [public-api.md](docs/public-api.md).
 
 ## Dependencies
 
