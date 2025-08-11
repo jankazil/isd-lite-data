@@ -587,6 +587,7 @@ Notes:
         wban_ids = []
         station_ids = []
         station_names = []
+        calls = []
         ctrys = []
         ussts = []
         lats = []
@@ -608,6 +609,7 @@ Notes:
             wban_ids.append(row.WBAN)
             station_ids.append(row.USAF + '-' + row.WBAN)
             station_names.append(row.STATION_NAME)
+            calls.append(row.CALL)
             ctrys.append(row.CTRY)
             ussts.append(row.ST)
             lats.append(row.LAT)
@@ -673,6 +675,7 @@ Notes:
             lon=("station", lons),
             elevation=("station", elevs),
             station_name=("station", station_names),
+            call=("station", calls),
             station_id=("station", station_ids),
             usaf_id=("station", usaf_ids),
             wban_id=("station", wban_ids),
@@ -695,6 +698,9 @@ Notes:
         
         ds['station_name'].attrs['long_name'] = 'Station name'
         ds['station_name'].attrs['units'] = ''
+        
+        ds['call'].attrs['long_name'] = ''
+        ds['call'].attrs['units'] = ''
         
         ds['station_id'].attrs['long_name'] = 'Station USAF and WBAN id'
         ds['station_id'].attrs['units'] = ''
