@@ -670,6 +670,8 @@ Notes:
             elevation=("station", elevs),
             station_name=("station", station_names),
             station_id=("station", station_ids),
+            usaf_id=("station", usaf_ids),
+            wban_id=("station", wban_ids),
             country=("station", ctrys),
             us_state=("station", ussts)
         )
@@ -690,6 +692,12 @@ Notes:
         
         ds['station_id'].attrs['long_name'] = 'Station USAF and WBAN id'
         ds['station_id'].attrs['units'] = ''
+        
+        ds['usaf_id'].attrs['long_name'] = 'Station USAF id'
+        ds['usaf_id'].attrs['units'] = ''
+        
+        ds['wban_id'].attrs['long_name'] = 'Station WBAN id'
+        ds['wban_id'].attrs['units'] = ''
         
         ds['country'].attrs['long_name'] = 'Country code'
         ds['country'].attrs['units'] = ''
