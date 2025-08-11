@@ -21,20 +21,13 @@ class Stations():
     
     Holds
     
-      - ISD station metadata
-      - a list of countries where stations are located
-      - a list of US states where stations are located
+      - ISD station metadata, upon initialization
+      - ISD station observations, once they are initialized by calling the corresponding instance method
     
     The ISD station metadata data is initialized from a file or from the
     Integrated Surface Database (ISD) Station History file, available online.
     
     """
-    
-    # Type hints for instance variables (good practice to hint all instance variables
-    # in one place, as otherwise, clarity and re-usability goes down the drain)
-    
-    countries: list
-    us_states: list
     
     # ISD station metadata
     
@@ -73,11 +66,6 @@ class Stations():
         """
         
         self.meta_data = meta_data.copy()
-        
-        # Create lists of countries and US states
-        
-        self.countries = sorted(list(self.meta_data['CTRY'].dropna().unique()))
-        self.us_states = sorted(list(self.meta_data['ST'].dropna().unique()))
         
         return
     
@@ -230,8 +218,8 @@ Notes:
         print('Two-letter country codes of the ISD stations')
         print()
         
-        for ii in range(0,len(self.countries),10):
-            print(' '.join(self.countries[ii:ii+10]))
+        for ii in range(0,len(self.countries()),10):
+            print(' '.join(self.countries()[ii:ii+10]))
         
         return
         
@@ -245,8 +233,8 @@ Notes:
         print('Two-letter US states codes of the ISD stations')
         print()
         
-        for ii in range(0,len(self.us_states),10):
-            print(' '.join(self.us_states[ii:ii+10]))
+        for ii in range(0,len(self.us_states()),10):
+            print(' '.join(self.us_states()[ii:ii+10]))
         
         return
     
@@ -447,6 +435,22 @@ Notes:
         
         return result
         
+    def countries(self) -> list[str]:
+        
+        """
+        Returns a list of countries that are represented in the station metadata.
+        """
+        
+        return sorted(list(self.meta_data['CTRY'].dropna().unique()))
+    
+    def us_states(self) -> list[str]:
+        
+        """
+        Returns a list of US states that are represented in the station metadata.
+        """
+        
+        return sorted(list(self.meta_data['ST'].dropna().unique()))
+    
     def coordinates(self) -> list[list[str]]:
         
         """
