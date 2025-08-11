@@ -671,56 +671,56 @@ Notes:
         #
         
         ds = ds.assign(
-            lat=("station", lats),
-            lon=("station", lons),
-            elevation=("station", elevs),
-            station_name=("station", station_names),
-            call=("station", calls),
-            station_id=("station", station_ids),
-            usaf_id=("station", usaf_ids),
-            wban_id=("station", wban_ids),
-            country=("station", ctrys),
-            us_state=("station", ussts),
-            begin=("station", begins),
-            end=("station", ends)
+            LAT=("station", lats),
+            LON=("station", lons),
+            ELEV=("station", elevs),
+            STATION_NAME=("station", station_names),
+            CALL=("station", calls),
+            STATION_ID=("station", station_ids),
+            USAF=("station", usaf_ids),
+            WBAN=("station", wban_ids),
+            CTRY=("station", ctrys),
+            ST=("station", ussts),
+            BEGIN=("station", begins),
+            END=("station", ends)
         )
         
         # Set long names and units
         
-        ds['lat'].attrs['long_name'] = 'Latitude'
-        ds['lat'].attrs['units'] = 'degrees north'
+        ds['LAT'].attrs['long_name'] = 'Latitude'
+        ds['LAT'].attrs['units'] = 'degrees north'
         
-        ds['lon'].attrs['long_name'] = 'Longitude'
-        ds['lon'].attrs['units'] = 'degrees east'
+        ds['LON'].attrs['long_name'] = 'Longitude'
+        ds['LON'].attrs['units'] = 'degrees east'
         
-        ds['elevation'].attrs['long_name'] = 'Elevation above sea level'
-        ds['elevation'].attrs['units'] = 'm'
+        ds['ELEV'].attrs['long_name'] = 'Elevation above sea level'
+        ds['ELEV'].attrs['units'] = 'm'
         
-        ds['station_name'].attrs['long_name'] = 'Station name'
-        ds['station_name'].attrs['units'] = ''
+        ds['STATION_NAME'].attrs['long_name'] = 'Station name'
+        ds['STATION_NAME'].attrs['units'] = ''
         
-        ds['call'].attrs['long_name'] = ''
-        ds['call'].attrs['units'] = ''
+        ds['CALL'].attrs['long_name'] = ''
+        ds['CALL'].attrs['units'] = ''
         
-        ds['station_id'].attrs['long_name'] = 'Station USAF and WBAN id'
-        ds['station_id'].attrs['units'] = ''
+        ds['STATION_ID'].attrs['long_name'] = 'Station USAF and WBAN id'
+        ds['STATION_ID'].attrs['units'] = ''
         
-        ds['usaf_id'].attrs['long_name'] = 'Station USAF id'
-        ds['usaf_id'].attrs['units'] = ''
+        ds['USAF'].attrs['long_name'] = 'Station USAF id'
+        ds['USAF'].attrs['units'] = ''
         
-        ds['wban_id'].attrs['long_name'] = 'Station WBAN id'
-        ds['wban_id'].attrs['units'] = ''
+        ds['WBAN'].attrs['long_name'] = 'Station WBAN id'
+        ds['WBAN'].attrs['units'] = ''
         
-        ds['country'].attrs['long_name'] = 'Country code'
-        ds['country'].attrs['units'] = ''
+        ds['CTRY'].attrs['long_name'] = 'Country code'
+        ds['CTRY'].attrs['units'] = ''
         
-        ds['us_state'].attrs['long_name'] = 'US state'
-        ds['us_state'].attrs['units'] = ''
+        ds['ST'].attrs['long_name'] = 'US state'
+        ds['ST'].attrs['units'] = ''
 
-        ds['begin'].attrs['long_name'] = 'Period Of Record start. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
+        ds['BEGIN'].attrs['long_name'] = 'Period Of Record start. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
         # Do not set units here as this would lead to a conflict with the encoding definition in write_observations2netcdf.
         
-        ds['end'].attrs['long_name'] = 'Period Of Record end. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
+        ds['END'].attrs['long_name'] = 'Period Of Record end. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
         # Do not set units here as this would lead to a conflict with the encoding definition in write_observations2netcdf.
         
         #
@@ -754,12 +754,12 @@ Notes:
                 "units": "seconds since 1970-01-01T00:00:00Z",
                 "calendar": "proleptic_gregorian"
             },
-            "begin": {
+            "BEGIN": {
                 "dtype": "float64",
                 "units": "seconds since 1970-01-01T00:00:00Z",
                 "calendar": "proleptic_gregorian"
             },
-            "end": {
+            "END": {
                 "dtype": "float64",
                 "units": "seconds since 1970-01-01T00:00:00Z",
                 "calendar": "proleptic_gregorian"
