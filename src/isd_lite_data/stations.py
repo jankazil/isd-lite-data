@@ -592,6 +592,8 @@ Notes:
         lats = []
         lons = []
         elevs = []
+        begins = []
+        ends = []
         
         for row in self.meta_data.itertuples():
             
@@ -611,6 +613,8 @@ Notes:
             lats.append(row.LAT)
             lons.append(row.LON)
             elevs.append(row.ELEV)
+            begins.append(row.BEGIN)
+            ends.append(row.END)
         
         #
         # Create common times
@@ -673,7 +677,9 @@ Notes:
             usaf_id=("station", usaf_ids),
             wban_id=("station", wban_ids),
             country=("station", ctrys),
-            us_state=("station", ussts)
+            us_state=("station", ussts),
+            begin=("station", begins),
+            end=("station", ends)
         )
         
         # Set long names and units
@@ -704,6 +710,12 @@ Notes:
         
         ds['us_state'].attrs['long_name'] = 'US state'
         ds['us_state'].attrs['units'] = ''
+
+        ds['begin'].attrs['long_name'] = 'Period Of Record start. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
+        # Do not set units here as this would lead to a conflict with the encoding definition in write_observations2netcdf.
+        
+        ds['end'].attrs['long_name'] = 'Period Of Record end. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
+        # Do not set units here as this would lead to a conflict with the encoding definition in write_observations2netcdf.
         
         #
         # Add global attributes
@@ -732,6 +744,16 @@ Notes:
         
         encoding = {
             "time": {
+                "dtype": "float64",
+                "units": "seconds since 1970-01-01T00:00:00Z",
+                "calendar": "proleptic_gregorian"
+            },
+            "begin": {
+                "dtype": "float64",
+                "units": "seconds since 1970-01-01T00:00:00Z",
+                "calendar": "proleptic_gregorian"
+            },
+            "end": {
                 "dtype": "float64",
                 "units": "seconds since 1970-01-01T00:00:00Z",
                 "calendar": "proleptic_gregorian"
