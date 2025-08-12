@@ -1,6 +1,6 @@
 # Public API
 
-This document declares the **public API**&nbsp; for this project as of **v1.0.0**.
+This document declares the **public API**&nbsp; for this project as of **v1.1.0**.
 
 ---
 
@@ -44,6 +44,13 @@ Represents a collection of ISD stations and metadata and, optionally, loaded obs
 
 * `save(self, title_line: str, file_path: pathlib.Path) -> Stations`  
   Write the current station metadata to a Station History–formatted text file.
+
+* `write_observations2netcdf(self, file_path: pathlib.Path) -> None`  
+  Write `self.observations` to NetCDF with float32 data variables and CF-style time encoding.
+
+* `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
+  Load station metadata and observations from an existing NetCDF file created by  
+  `write_observations2netcdf`.
 
 #### Inspection / printing
 
@@ -107,6 +114,9 @@ Return simple Python collections derived from the current metadata.
 
 * `write_observations2netcdf(self, file_path: pathlib.Path) -> None`  
   Write `self.observations` to NetCDF with float32 data variables and CF‑style time encoding.
+
+* `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
+  Load station metadata and observations from an existing NetCDF file created by `write_observations2netcdf`. Creates and populates both `self.meta_data` (as a Pandas DataFrame) and `self.observations` (as an `xarray.Dataset`) with the same structure and attributes as when originally written. The NetCDF file must follow the encoding and variable naming conventions produced by `write_observations2netcdf`. Returns a fully populated `Stations` instance ready for further filtering, analysis, or re-export.
 
 ---
 
