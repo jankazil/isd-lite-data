@@ -109,7 +109,7 @@ Scripts are intended to be executed in the following sequence:
   - `data/conus_stations.2020-2025.nc`:  
      netCDF file with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
 - `scripts/CONUS_Observations_Load_netCDF.py`  
-  Load the ISDLite CONUS station observations into an xarray Dataset and station metadata into a Pandas Dataframe from the netCDF file `data/conus_stations.2020-2023.nc`
+  Load the ISDLite CONUS station observations into an xarray Dataset and station metadata into a Pandas Dataframe from the netCDF file `data/conus_stations.2020-2025.nc`
 
 ## Notes
 
