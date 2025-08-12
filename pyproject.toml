@@ -1,6 +1,6 @@
 [project]
 name = "isd-lite-data"
-version = "1.1.1"
+version = "1.1.5"
 description = "A toolkit for accessing, downloading, and processing ISD Lite data"
 authors = [
     { name="Jan Kazil", email="jan.kazil.dev@gmail.com" }
@@ -10,8 +10,8 @@ requires-python = ">=3.10"
 
 dependencies = [
     "requests",
-    "pandas"
-    "xarray"
+    "pandas",
+    "xarray",
     "numpy"
 ]
 
