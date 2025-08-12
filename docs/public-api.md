@@ -41,7 +41,7 @@ Represents a collection of ISD stations and metadata and observations in the `xa
   Read a local ISD Station History–formatted (station metadata) file and build an instance that has populated metadata, but not yet populated observations.  
 
 * `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
- Load station metadata and observations from a NetCDF file (e.g. created by `write_observations2netcdf`), and build an instance that has populated metadata and observations. See section 'Observations/metadata  I/O'.  
+ Load station metadata and observations from a NetCDF file (e.g. created by `write_observations2netcdf`), and build an instance that has populated metadata and observations. See section 'I/O, Persistence'.  
   
 * `@classmethod from_dataset(cls, fds: xarray.Dataset) -> Stations`  
  Initialize station metadata and observations from an xarray.Dataset and build an instance that has populated metadata and observations. The xarray.Dataset must have the same structure as `self.observations`.
