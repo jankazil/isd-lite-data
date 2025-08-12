@@ -40,6 +40,10 @@ Represents a collection of ISD stations and metadata and, optionally, loaded obs
 * `@classmethod from_file(cls, file_path: pathlib.Path) -> Stations`  
   Read a local ISD Station History–formatted text file and build an instance.
 
+* `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
+  Load station observations and metadata from an existing NetCDF file and build an instance.  
+  See section 'Observations/metadata  I/O'.  
+  
 #### Persistence
 
 * `save(self, title_line: str, file_path: pathlib.Path) -> Stations`  
@@ -101,7 +105,7 @@ Return simple Python collections derived from the current metadata.
 * `meta_data(self) -> list[list]`  
   Returns the complete station metadata table as a nested list, preserving all 11 canonical columns.
 
-#### Observations I/O
+#### Observations/metadata I/O
 
 * `load_observations(self, data_dir: pathlib.Path, start_year: int, end_year: int, verbose: bool = False) -> None`  
   Read observation data from gzipped ISD-Lite files for all stations in the current metadata and the given year range. The ISD-Lite files contain hourly records but may have gaps; a common time dimension is built from the union of all station timestamps, with `NaN` where values are missing. Stores the result in `self.observations: xarray.Dataset`:
@@ -116,7 +120,7 @@ Return simple Python collections derived from the current metadata.
   Write `self.observations` to NetCDF with float32 data variables and CF‑style time encoding.
 
 * `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
-  Load station metadata and observations from an existing NetCDF file created by `write_observations2netcdf`. Creates and populates both `self.meta_data` (as a Pandas DataFrame) and `self.observations` (as an `xarray.Dataset`) with the same structure and attributes as when originally written. The NetCDF file must follow the encoding and variable naming conventions produced by `write_observations2netcdf`. Returns a fully populated `Stations` instance ready for further filtering, analysis, or re-export.
+  Load station metadata and observations from an existing NetCDF file. Creates and populates both `self.meta_data` (as a Pandas DataFrame) and `self.observations` (as an `xarray.Dataset`) with the same structure and attributes as when originally written. The NetCDF file must have been created by `write_observations2netcdf` or follow the encoding and variable naming conventions produced by `write_observations2netcdf`. Returns a fully populated `Stations` instance ready for further filtering, analysis, or re-export.
 
 ---
 

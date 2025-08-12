@@ -33,6 +33,7 @@ The project consists of the following modules:
     - period with observations
   - Loading station observations from ISDLite data files into an xarray dataset
   - Saving station observations as a netCDF file
+  - Reading station observations and station metadata from a netCDF file
 
 ## Public API
 
@@ -88,6 +89,8 @@ Scripts are intended to be executed in the following sequence:
   Load the ISDLite station observations into an xarray Dataset and produce:
   - `data/switzerland_stations.2020-2023.nc`:  
      netCDF file with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
+- `scripts/Switzerland_Observations_Load_netCDF.py`  
+  Load the ISDLite Swiss station observations into an xarray Dataset and station metadata into a Pandas Dataframe from the netCDF file `data/switzerland_stations.2020-2023.nc`
 
 ### Regional Downloads - Contiguous United States (CONUS)
 
@@ -105,6 +108,8 @@ Scripts are intended to be executed in the following sequence:
   Load the ISDLite station observations into an xarray Dataset and produce:
   - `data/conus_stations.2020-2025.nc`:  
      netCDF file with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
+- `scripts/CONUS_Observations_Load_netCDF.py`  
+  Load the ISDLite CONUS station observations into an xarray Dataset and station metadata into a Pandas Dataframe from the netCDF file `data/conus_stations.2020-2023.nc`
 
 ## Notes
 
