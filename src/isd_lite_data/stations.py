@@ -195,6 +195,24 @@ class Stations():
           return cls(metadata,observations = observations)
     
     @classmethod
+    def from_dataset(cls,ds: xr.Dataset) -> Self:
+          
+          """
+          Alternative constructor, initializes the ISD station metadata and
+          ISD Lite station observations from an xarray Dataset.
+          
+          Args:
+              ds (xr.dataset): xarray Dataset that has the same structure as
+                               self.observations and which is properly populated.
+          """
+          
+          # Construct metadata
+          
+          metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
+          
+          return cls(metadata,observations = ds)
+    
+    @classmethod
     def from_url(cls) -> Self:
         
         """
