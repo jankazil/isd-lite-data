@@ -29,11 +29,47 @@ class Stations():
     
     """
     
+    #
     # ISD station metadata
+    #
     
     meta_data: pd.DataFrame
     
+    # ISD station metadata column names (variable names)
+    
+    column_names = ['USAF', 'WBAN', 'STATION_NAME', 'CTRY', 'ST', 'CALL', 'LAT', 'LON', 'ELEV', 'BEGIN', 'END']
+    
+    column_long_names = [
+    'Station USAF id',
+    'Station WBAN id',
+    'Station name',
+    'Country code',
+    'US state',
+    '',
+    'Latitude',
+    'Longitude',
+    'Elevation above sea level',
+    'Period Of Record start for stations. May exceed period in this file, and there may be reporting gaps within the P.O.R.',
+    'Period Of Record end for stations. May exceed period in this file, and there may be reporting gaps within the P.O.R.',
+    'Station USAF and WBAN id']
+    
+    column_units = [
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    'degrees north',
+    'degrees east',
+    'm',
+    '',
+    '',
+    '']
+    
+    #
     # ISD Lite observations
+    #
     
     observations: xr.Dataset
     
@@ -54,7 +90,7 @@ class Stations():
     
     var_units = ['C','C','hPa','angular degrees','m s-1','','mm','mm']
         
-    def __init__(self,meta_data: pd.DataFrame):
+    def __init__(self,meta_data: pd.DataFrame,observations: xr.Dataset = None):
         
         """
         
@@ -62,10 +98,15 @@ class Stations():
         
         Args:
             meta_data (pd.DataFrame): A Pandas dataframe with station metadata
+            observations (xr.Dataset, optional): An xarray.Dataset with observations from
+                                                 stations given in the station metadata
         
         """
         
         self.meta_data = meta_data.copy()
+        
+        if observations is not None:
+          self.observations = observations.copy()
         
         return
     
@@ -86,34 +127,72 @@ class Stations():
         
         """
         
-        # Define column widths and names
+        # Define widths of column names
         widths = [6,6,30,3,5,5,9,9,8,9,9]
-        column_names = ['USAF', 'WBAN', 'STATION_NAME', 'CTRY', 'ST', 'CALL', 'LAT', 'LON', 'ELEV', 'BEGIN', 'END']
         
-        # Read the data rows from the file
-        meta_data = pd.read_fwf(file_path,widths=widths,skiprows=22,names=column_names,dtype=str)
+        # Read the data rows from the file strictly as text, turn of the Pandas missing value (NA) detection
+        meta_data = pd.read_fwf(
+            file_path,
+            widths=widths,
+            skiprows=22,
+            names=cls.column_names,
+            dtype=str,
+            keep_default_na=False, # do not auto-convert blanks to NaN
+            na_filter=False        # disable missing-value detection
+        )
         
-        # Strip whitespace
+        # Strip whitespace everywhere
         meta_data = meta_data.map(lambda x: x.strip() if isinstance(x, str) else x)
         
-        # Convert LAT, LON, ELEV to float if possible; empty strings become NaN
-        for col in ['LAT', 'LON', 'ELEV']:
-            meta_data[col] = pd.to_numeric(meta_data[col], errors='coerce')
+        # Columns by intended type
+        string_cols = ["USAF", "WBAN", "STATION_NAME", "CTRY", "ST", "CALL"]
+        numeric_cols = ["LAT", "LON", "ELEV"]
+        date_cols = ["BEGIN", "END"]
         
-        # Drop rows where both LAT and LON are NaN
-        meta_data = meta_data.dropna(subset=['LAT', 'LON'], how='all')
+        # Strings: turn "" into <NA> and use StringDtype
+        for col in string_cols:
+            meta_data[col] = (
+                meta_data[col]
+                .replace("", pd.NA)
+                .astype("string")
+            )
+                
+        # Numerics: parse and coerce invalid/blank to NaN
+        for col in numeric_cols:
+            meta_data[col] = pd.to_numeric(meta_data[col], errors="coerce")
         
-        # Drop rows where the station name contains 'bogus'
-        meta_data = meta_data[~meta_data['STATION_NAME'].str.contains('bogus', case=False, na=False)]
-        
-        # Convert the 'BEGIN' and 'END' columns from date strings to datetime objects
-        for col in ['BEGIN', 'END']:
-            meta_data[col] = pd.to_datetime(meta_data[col], format="%Y%m%d", errors='coerce')
+        # Dates: parse and coerce invalid/blank to NaT
+        for col in date_cols:
+            meta_data[col] = pd.to_datetime(meta_data[col], format="%Y%m%d", errors="coerce")
         
         # Reset index
         meta_data = meta_data.reset_index(drop=True)
         
         return cls(meta_data)
+    
+    @classmethod
+    def from_netcdf(cls,file_path: Path) -> Self:
+          
+          """
+          Alternative constructor, initializes the ISD station metadata and
+          ISD Lite station observations from a netCDF file that was created with
+          self.write_observations2netcdf.
+          
+          Args:
+              file_path (Path): Path to a netCDF with station observations. The netCDF
+                                file needs to have the same structure as a netCDF file
+                                created by self.write_observations2netCDF.
+          """
+          
+          # Read the observations from the netCDF file
+          
+          observations = xr.load_dataset(file_path)
+          
+          # Construct metadata
+          
+          metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
+          
+          return cls(metadata,observations = observations)
     
     @classmethod
     def from_url(cls) -> Self:
@@ -687,41 +766,14 @@ Notes:
         
         # Set long names and units
         
-        ds['LAT'].attrs['long_name'] = 'Latitude'
-        ds['LAT'].attrs['units'] = 'degrees north'
-        
-        ds['LON'].attrs['long_name'] = 'Longitude'
-        ds['LON'].attrs['units'] = 'degrees east'
-        
-        ds['ELEV'].attrs['long_name'] = 'Elevation above sea level'
-        ds['ELEV'].attrs['units'] = 'm'
-        
-        ds['STATION_NAME'].attrs['long_name'] = 'Station name'
-        ds['STATION_NAME'].attrs['units'] = ''
-        
-        ds['CALL'].attrs['long_name'] = ''
-        ds['CALL'].attrs['units'] = ''
-        
         ds['STATION_ID'].attrs['long_name'] = 'Station USAF and WBAN id'
         ds['STATION_ID'].attrs['units'] = ''
         
-        ds['USAF'].attrs['long_name'] = 'Station USAF id'
-        ds['USAF'].attrs['units'] = ''
-        
-        ds['WBAN'].attrs['long_name'] = 'Station WBAN id'
-        ds['WBAN'].attrs['units'] = ''
-        
-        ds['CTRY'].attrs['long_name'] = 'Country code'
-        ds['CTRY'].attrs['units'] = ''
-        
-        ds['ST'].attrs['long_name'] = 'US state'
-        ds['ST'].attrs['units'] = ''
-
-        ds['BEGIN'].attrs['long_name'] = 'Period Of Record start. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
-        # Do not set units here as this would lead to a conflict with the encoding definition in write_observations2netcdf.
-        
-        ds['END'].attrs['long_name'] = 'Period Of Record end. May enclose period in this file, and there may be reporting gaps within the P.O.R.'
-        # Do not set units here as this would lead to a conflict with the encoding definition in write_observations2netcdf.
+        for column_name, column_long_name, column_unit in zip(self.column_names,self.column_long_names,self.column_units):
+            if column_long_name:
+                ds[column_name].attrs['long_name'] = column_long_name
+            if column_unit:
+                ds[column_name].attrs['units'] = column_unit
         
         #
         # Add global attributes
@@ -747,6 +799,16 @@ Notes:
         Args:
             file_path (Path): Path to the netCDF file. The file will be overwritten if it exists.
         """
+        
+        # Remove attribute/encoding conflicts with any units set previously on time-like variables
+        for name in ('time', 'BEGIN', 'END'):
+            if name in self.observations.variables:
+                # Remove conflicting 'units' or 'calendar' attributes if present
+                for key in ('units', 'calendar'):
+                    if key in self.observations[name].attrs:
+                        del self.observations[name].attrs[key]
+        
+        # Build encoding
         
         encoding = {
             "time": {
