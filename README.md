@@ -32,7 +32,7 @@ The project consists of the following modules:
     - station elevation
     - period with observations
   - Loading station observations from ISDLite data files into an xarray dataset
-  - Saving station observations as a netCDF file
+  - Saving station observations and station metadata as a netCDF file
   - Reading station observations and station metadata from a netCDF file
 
 ## Public API

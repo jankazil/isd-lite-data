@@ -38,23 +38,31 @@ Represents a collection of ISD stations and metadata and, optionally, loaded obs
   Download the ISD Station History (station metadata) file from NCEI and build an instance.
 
 * `@classmethod from_file(cls, file_path: pathlib.Path) -> Stations`  
-  Read a local ISD Station History–formatted text file and build an instance.
+  Read a local ISD Station History–formatted (station metadata) file and build an instance.
 
 * `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
-  Load station observations and metadata from an existing NetCDF file and build an instance.  
-  See section 'Observations/metadata  I/O'.  
+ Load station metadata and observations from a NetCDF file (e.g. created by  
+  `write_observations2netcdf`. See section 'Observations/metadata  I/O'.  
   
 #### Persistence
 
 * `save(self, title_line: str, file_path: pathlib.Path) -> Stations`  
   Write the current station metadata to a Station History–formatted text file.
 
+* `load_observations(self, data_dir: pathlib.Path, start_year: int, end_year: int, verbose: bool = False) -> None`  
+  Read observation data from gzipped ISD-Lite files for all stations in the current metadata and the given year range. The ISD-Lite files contain hourly records but may have gaps; a common time dimension is built from the union of all station timestamps, with `NaN` where values are missing. Stores the result in `self.observations: xarray.Dataset`:
+
+  * **Dims:**&nbsp; `time`, `station`  
+  * **Data variables:**&nbsp; `T, TD, SLP, WD, WS, SKY, PREC1H, PREC6H`  
+  * **Per‑station variables:**&nbsp; `lat, lon, elevation, station_name, station_id, country, us_state`  
+  * **Attrs:**&nbsp; `title`, `source`, `URL`  
+    **Requirements:**&nbsp; Required `.gz` files must already exist in `data_dir` (e.g., via `ncei.download_many`).  
+
 * `write_observations2netcdf(self, file_path: pathlib.Path) -> None`  
-  Write `self.observations` to NetCDF with float32 data variables and CF-style time encoding.
+  Write `self.observations` to NetCDF with float32 data variables and CF‑style time encoding.  
 
 * `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
-  Load station metadata and observations from an existing NetCDF file created by  
-  `write_observations2netcdf`.
+  Load station metadata and observations from a NetCDF file. Creates and populates both `self.meta_data` (as a Pandas DataFrame) and `self.observations` (as an `xarray.Dataset`) with the same structure and attributes as when originally written. The NetCDF file must have been created by `write_observations2netcdf` or follow the encoding and variable naming conventions produced by `write_observations2netcdf`. Returns a fully populated `Stations` instance ready for further filtering, analysis, or re-export.
 
 #### Inspection / printing
 
@@ -104,23 +112,6 @@ Return simple Python collections derived from the current metadata.
 
 * `meta_data(self) -> list[list]`  
   Returns the complete station metadata table as a nested list, preserving all 11 canonical columns.
-
-#### Observations/metadata I/O
-
-* `load_observations(self, data_dir: pathlib.Path, start_year: int, end_year: int, verbose: bool = False) -> None`  
-  Read observation data from gzipped ISD-Lite files for all stations in the current metadata and the given year range. The ISD-Lite files contain hourly records but may have gaps; a common time dimension is built from the union of all station timestamps, with `NaN` where values are missing. Stores the result in `self.observations: xarray.Dataset`:
-
-  * **Dims:**&nbsp; `time`, `station`  
-  * **Data variables:**&nbsp; `T, TD, SLP, WD, WS, SKY, PREC1H, PREC6H`  
-  * **Per‑station variables:**&nbsp; `lat, lon, elevation, station_name, station_id, country, us_state`  
-  * **Attrs:**&nbsp; `title`, `source`, `URL`  
-    **Requirements:**&nbsp; Required `.gz` files must already exist in `data_dir` (e.g., via `ncei.download_many`).  
-
-* `write_observations2netcdf(self, file_path: pathlib.Path) -> None`  
-  Write `self.observations` to NetCDF with float32 data variables and CF‑style time encoding.
-
-* `@classmethod from_netcdf(cls, file_path: pathlib.Path) -> Stations`  
-  Load station metadata and observations from an existing NetCDF file. Creates and populates both `self.meta_data` (as a Pandas DataFrame) and `self.observations` (as an `xarray.Dataset`) with the same structure and attributes as when originally written. The NetCDF file must have been created by `write_observations2netcdf` or follow the encoding and variable naming conventions produced by `write_observations2netcdf`. Returns a fully populated `Stations` instance ready for further filtering, analysis, or re-export.
 
 ---
 
