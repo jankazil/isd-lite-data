@@ -1,9 +1,5 @@
 # Public API
 
-This document declares the **public API**&nbsp; for this project as of **v1.1.5**.
-
----
-
 ## Module: `ncei`
 
 Utilities for downloading ISD‑Lite station metadata and observations from NCEI.
