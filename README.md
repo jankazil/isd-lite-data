@@ -41,7 +41,7 @@ The project consists of the following modules:
 
 ## Usage
 
-Demo scripts demonstrate usage and serve as functional examples. See the `demo` directory:
+Demo scripts demonstrate usage and serve as functional examples. See the `demos` directory:
 
 - `demo_ncei_download_stations.py`  
   Download the ISDLite station metadata file (`isd-history.txt`) and save it locally.
