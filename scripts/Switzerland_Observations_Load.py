@@ -7,9 +7,6 @@ xarray dataset, and saved to a netCDF file
 from datetime import datetime
 from pathlib import Path
 
-import xarray as xr
-
-from isd_lite_data import ncei
 from isd_lite_data import stations
 
 #
@@ -38,7 +35,7 @@ switzerland_stations = stations.Stations.from_file(file_path)
 # Load observations from local files (must have been previously downloaded)
 #
 
-switzerland_stations.load_observations(data_dir,start_year,end_year,verbose=True)
+switzerland_stations.load_observations(data_dir, start_year, end_year, verbose=True)
 
 #
 # Save observations as netCDF file

@@ -4,6 +4,10 @@
 
 ISDLite is a product derived from [ISD](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database), which is easier to work with for general research and scientific purposes. It is a subset of the full ISD containing eight common surface parameters in a fixed-width format free of duplicate values, sub-hourly data, and complicated flags.
 
+## Public API
+
+The list of modules, classes, and functions is documented in [public-api.md](docs/public-api.md).
+
 ## Overview
 
 The project consists of the following modules:
@@ -35,42 +39,29 @@ The project consists of the following modules:
   - Saving station observations and station metadata as a netCDF file
   - Reading station observations and station metadata from a netCDF file
 
-## Public API
-
-The list of modules, classes, and functions is documented in [public-api.md](docs/public-api.md).
-
-## Dependencies
-
-- Python ≥ 3.10
-- Required Python packages:
-  - `requests`
-  - `pandas`
-  - `numpy`
-  - `xarray`
-
 ## Usage
 
-All test scripts demonstrate usage and serve as functional examples. See:
+Demo scripts demonstrate usage and serve as functional examples. See the `demo` directory:
 
-- `test_ncei_download_stations.py`  
+- `demo_ncei_download_stations.py`  
   Download the ISDLite station metadata file (`isd-history.txt`) and save it locally.
 
-- `test_data_stations.py`  
+- `demo_data_stations.py`  
   Initialize the station metadata database and print all available country and US state codes.
 
-- `test_data_stations_filter_by_country.py`  
+- `demo_data_stations_filter_by_country.py`  
   Filter station metadata by country code (e.g., 'CH' for Switzerland/China), then further by geographic coordinates.
 
-- `test_data_stations_filter_by_US_state.py`  
+- `demo_data_stations_filter_by_US_state.py`  
   Filter station metadata by US state code (e.g., 'CO' for Colorado).
 
-- `test_data_stations_metadata.py`  
+- `demo_data_stations_metadata.py`  
   Filter station metadata by country, geographic bounding box, and time period. Print selected station metadata.
 
-- `test_ncei_download.py`  
+- `demo_ncei_download.py`  
   Download a sample ISDLite data file for a given year and station.
 
-- `test_ncei_download_year_range.py`  
+- `demo_ncei_download_year_range.py`  
   Download ISDLite data files for a given range of years for a given list of stations.
 
 ### Regional Downloads - Switzerland
@@ -110,6 +101,15 @@ Scripts are intended to be executed in the following sequence:
      netCDF file with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.
 - `scripts/CONUS_Observations_Load_netCDF.py`  
   Load the ISDLite CONUS station observations the netCDF file `data/conus_stations.2020-2025.nc`
+
+## Development
+
+### Code Quality and Testing Commands
+
+- `make fmt` - Runs ruff format, which automatically reformats Python files according to the style rules in `pyproject.toml`
+- `make lint` - Runs ruff check --fix, which lints the code (checks for style errors, bugs, outdated patterns, etc.) and auto-fixes what it can.
+- `make type` - Runs mypy, the static type checker, using the strictness settings from `pyproject.toml`. Mypy is a static type checker for Python, a dynamically typed language. Because static analysis cannot account for all dynamic runtime behaviors, mypy may report false positives which do no reflect actual runtime issues. The usefulness of mypy is therefore limited, unless the developer compensates with extra work for the choices that were made when Python was originally designed.
+- `make test` - Runs pytest with coverage reporting (configured in `pyproject.toml`).
 
 ## Notes
 

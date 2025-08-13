@@ -112,9 +112,6 @@ Return simple Python collections derived from the current metadata.
 * `data_period(self) -> list[list[datetime.datetime]]`  
   Returns the nominal data coverage period for each station as a list of `[BEGIN, END]` datetimes.
 
-* `meta_data(self) -> list[list]`  
-  Returns the complete station metadata table as a nested list, preserving all 11 canonical columns.
-
 ---
 
 ## Behavioral notes

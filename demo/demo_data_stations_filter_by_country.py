@@ -12,7 +12,9 @@ use the geographic filter to separate the two.
 """
 
 from pathlib import Path
+
 import pandas as pd
+
 from isd_lite_data import stations
 
 data_dir = Path('..') / 'data'
@@ -21,12 +23,14 @@ all_stations = stations.Stations.from_url()
 
 switzerland_and_china_stations = all_stations.filter_by_country(['CH'])
 
-min_lat = 40 
+min_lat = 40
 max_lat = 50
 min_lon = 0
 max_lon = 15
 
-switzerland_stations = switzerland_and_china_stations.filter_by_coordinates(min_lat,max_lat,min_lon,max_lon)
+switzerland_stations = switzerland_and_china_stations.filter_by_coordinates(
+    min_lat, max_lat, min_lon, max_lon
+)
 
 with pd.option_context('display.max_rows', None):
-  print(switzerland_stations.meta_data)
+    print(switzerland_stations.meta_data)

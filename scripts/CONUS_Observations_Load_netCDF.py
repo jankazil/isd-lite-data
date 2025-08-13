@@ -10,10 +10,6 @@ into the Stations.observations xarray Dataset.
 from datetime import datetime
 from pathlib import Path
 
-import pandas as pd
-import xarray as xr
-
-from isd_lite_data import ncei
 from isd_lite_data import stations
 
 #
@@ -41,4 +37,3 @@ nc_file_name = 'conus_stations.' + str(start_date.year) + '-' + str(end_date.yea
 nc_file_path = data_dir / nc_file_name
 
 conus_stations = stations.Stations.from_netcdf(nc_file_path)
-

@@ -4,10 +4,10 @@ Downloads IDSLite station observations for stations in a given stations database
 
 """
 
-from pathlib import Path
 from datetime import datetime
-from isd_lite_data import ncei
-from isd_lite_data import stations
+from pathlib import Path
+
+from isd_lite_data import ncei, stations
 
 #
 # Directory where data is located/will be placed
@@ -43,5 +43,6 @@ local_files = ncei.download_many(
     switzerland_stations.id(),
     data_dir,
     n_jobs=32,
-    refresh = False,
-    verbose=True)
+    refresh=False,
+    verbose=True,
+)

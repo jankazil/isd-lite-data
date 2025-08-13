@@ -6,6 +6,7 @@ and prints all available country and US state codes.
 """
 
 from pathlib import Path
+
 from isd_lite_data import stations
 
 data_dir = Path('..') / 'data'
