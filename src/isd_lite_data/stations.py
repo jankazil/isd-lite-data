@@ -195,7 +195,7 @@ class Stations():
           return cls(metadata,observations = observations)
     
     @classmethod
-    def from_dataset(cls,ds: xr.Dataset) -> Self:
+    def from_dataset(cls,observations: xr.Dataset) -> Self:
           
           """
           Alternative constructor, initializes the ISD station metadata and
@@ -210,7 +210,7 @@ class Stations():
           
           metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
           
-          return cls(metadata,observations = ds)
+          return cls(metadata,observations = observations)
     
     @classmethod
     def from_url(cls) -> Self:
@@ -228,9 +228,12 @@ class Stations():
         
         """
         
-        # Download the station database file
+        # Get a temporary file name
         
-        tmpfile = Path(tempfile.NamedTemporaryFile(delete=False).name)
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            tmpfile = Path(tmp.name)
+        
+        # Download the station database file using the temporary file name
         
         ncei.download_stations(tmpfile)
         
