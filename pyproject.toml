@@ -24,7 +24,7 @@ extend-exclude = ["dist", "build"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
-ignore = ["E501"]
+ignore = ["E501", "SIM108"]
 
 [tool.ruff.format]
 quote-style = "preserve"
