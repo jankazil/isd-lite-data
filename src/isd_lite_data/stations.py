@@ -163,6 +163,14 @@ class Stations:
         # Reset index
         meta_data = meta_data.reset_index(drop=True)
 
+        # Filter out rows with latitude or longitude holding a Nan, reset index and drop old index
+
+        meta_data = meta_data.dropna(subset=['LAT','LON']).reset_index(drop=True)
+
+        # Filter out rows with 'BOGUS' in the station name, reset index and drop old index
+
+        meta_data = meta_data[~meta_data['STATION_NAME'].str.contains('BOGUS', na=False)].reset_index(drop=True)
+
         return cls(meta_data)
 
     @classmethod
