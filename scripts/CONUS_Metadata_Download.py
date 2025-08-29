@@ -27,7 +27,7 @@ all_stations = stations.Stations.from_url()
 
 conus_stations = all_stations.filter_by_country(['US'])
 
-min_lat = 25
+min_lat = 24
 max_lat = 50
 min_lon = -125
 max_lon = -65
