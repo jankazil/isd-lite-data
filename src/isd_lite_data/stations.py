@@ -3,18 +3,18 @@ Classes to hold ISD Lite data and perform operations on them.
 """
 
 import gzip
-import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
+from io import StringIO
 from pathlib import Path
 from typing import Self
 
 import numpy as np
 import pandas as pd
+import requests
 import xarray as xr
 
 from isd_lite_data import ncei
-
 
 class Stations:
     """
@@ -49,6 +49,7 @@ class Stations:
         'ELEV',
         'BEGIN',
         'END',
+        'STATION_ID'
     ]
 
     column_long_names = [
@@ -107,8 +108,67 @@ class Stations:
 
         if observations is not None:
             self.observations = observations.copy()
+        else:
+            self.observations = None
 
         return
+
+    @classmethod
+    def _read_fwf(cls,source) -> pd.DataFrame:
+        """
+        Internal helper to read the fixed-width file into a DataFrame from any valid source (path, file-like, StringIO, etc.).
+        
+        Args:
+            source (str | Path | file-like):
+                The input source for the fixed-width data.
+
+        Returns:
+            pd.DataFrame:
+                A DataFrame containing the raw station metadata, with all fields
+                read as strings and no NA filtering or type conversion applied.
+        """
+        
+        # Define widths of column names
+        widths = [6, 6, 30, 3, 5, 5, 9, 9, 8, 9, 9]
+
+        df = pd.read_fwf(
+            source,
+            widths=widths,
+            skiprows=22,
+            names=cls.column_names[0:11],
+            dtype=str,
+            keep_default_na=False,
+            na_filter=False,
+        )
+        
+        df['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
+        
+        return df
+
+    @classmethod
+    def from_url(cls) -> Self:
+        """
+
+        Alternative constructor, initializes the ISD station metadata from the
+        Integrated Surface Database (ISD) Station History file, available online.
+
+        Args:
+
+
+        Returns:
+            Stations: An instance of Stations initialized with data obtained online.
+
+        """
+        
+        response = requests.get(ncei.isd_lite_stations_url)
+        response.raise_for_status()
+        text_stream = StringIO(response.text)
+
+        meta_data = cls._read_fwf(text_stream)
+        
+        meta_data = cls._clean_meta_data(meta_data)
+        
+        return cls(meta_data)
 
     @classmethod
     def from_file(cls, file_path: Path) -> Self:
@@ -125,20 +185,70 @@ class Stations:
             Stations: An instance of Stations initialized with data from the file.
 
         """
+        
+        meta_data = cls._read_fwf(file_path)
+        
+        meta_data = cls._clean_meta_data(meta_data)
+        
+        return cls(meta_data)
 
-        # Define widths of column names
-        widths = [6, 6, 30, 3, 5, 5, 9, 9, 8, 9, 9]
+    @classmethod
+    def from_netcdf(cls, file_path: Path) -> Self:
+        """
+        Alternative constructor, initializes the ISD station metadata and
+        ISD Lite station observations from a netCDF file that was created with
+        self.write_observations2netcdf.
 
-        # Read the data rows from the file strictly as text, turn of the Pandas missing value (NA) detection
-        meta_data = pd.read_fwf(
-            file_path,
-            widths=widths,
-            skiprows=22,
-            names=cls.column_names,
-            dtype=str,
-            keep_default_na=False,  # do not auto-convert blanks to NaN
-            na_filter=False,  # disable missing-value detection
-        )
+        Args:
+            file_path (Path): Path to a netCDF with station observations. The netCDF
+                              file needs to have the same structure as a netCDF file
+                              created by self.write_observations2netCDF.
+        """
+
+        # Read the observations from the netCDF file
+
+        observations = xr.load_dataset(file_path)
+
+        # Construct metadata
+
+        metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
+
+        return cls(metadata, observations=observations)
+
+    @classmethod
+    def from_dataset(cls, ds: xr.Dataset) -> Self:
+        """
+        Alternative constructor, initializes the ISD station metadata and
+        ISD Lite station observations from an xarray Dataset.
+
+        Args:
+            ds (xr.dataset): xarray Dataset that has the same structure as
+                             self.observations and which is properly populated.
+        """
+
+        # Construct metadata
+
+        metadata = ds[cls.column_names].to_dataframe().reset_index(drop=True)
+        
+        metadata['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
+
+        return cls(metadata, observations=ds)
+
+    @staticmethod
+    def _clean_meta_data(meta_data: pd.DataFrame) -> pd.DataFrame:
+        
+        """
+
+        Cleans up a Pandas DataFrame holding IDSLite station metadata that have been read
+        as text from the Integrated Surface Database (ISD) Station History file
+
+        Args:
+            meta_data (pandas.DataFrame): A Pandas DataFrame holding IDSLite station metadata that needs "cleaning up"
+
+        Returns:
+            pandas.DataFrame: A Pandas DataFrame holding IDSLite station metadata that has been "cleaned up"
+
+        """
 
         # Strip whitespace everywhere
         meta_data = meta_data.map(lambda x: x.strip() if isinstance(x, str) else x)
@@ -171,77 +281,7 @@ class Stations:
 
         meta_data = meta_data[~meta_data['STATION_NAME'].str.contains('BOGUS', na=False)].reset_index(drop=True)
 
-        return cls(meta_data)
-
-    @classmethod
-    def from_netcdf(cls, file_path: Path) -> Self:
-        """
-        Alternative constructor, initializes the ISD station metadata and
-        ISD Lite station observations from a netCDF file that was created with
-        self.write_observations2netcdf.
-
-        Args:
-            file_path (Path): Path to a netCDF with station observations. The netCDF
-                              file needs to have the same structure as a netCDF file
-                              created by self.write_observations2netCDF.
-        """
-
-        # Read the observations from the netCDF file
-
-        observations = xr.load_dataset(file_path)
-
-        # Construct metadata
-
-        metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
-
-        return cls(metadata, observations=observations)
-
-    @classmethod
-    def from_dataset(cls, observations: xr.Dataset) -> Self:
-        """
-        Alternative constructor, initializes the ISD station metadata and
-        ISD Lite station observations from an xarray Dataset.
-
-        Args:
-            ds (xr.dataset): xarray Dataset that has the same structure as
-                             self.observations and which is properly populated.
-        """
-
-        # Construct metadata
-
-        metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
-
-        return cls(metadata, observations=observations)
-
-    @classmethod
-    def from_url(cls) -> Self:
-        """
-
-        Alternative constructor, initializes the ISD station metadata from the
-        Integrated Surface Database (ISD) Station History file, available online.
-
-        Args:
-
-
-        Returns:
-            Stations: An instance of Stations initialized with data obtained online.
-
-        """
-
-        # Get a temporary file name
-
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmpfile = Path(tmp.name)
-
-        # Download the station database file using the temporary file name
-
-        ncei.download_stations(tmpfile)
-
-        stations = cls.from_file(tmpfile)
-
-        tmpfile.unlink()
-
-        return stations
+        return meta_data
 
     def save(self, title_line: str, file_path: Path) -> Self:
         """
@@ -676,7 +716,7 @@ Notes:
 
             usaf_ids.append(row.USAF)
             wban_ids.append(row.WBAN)
-            station_ids.append(row.USAF + '-' + row.WBAN)
+            station_ids.append(row.STATION_ID)
             station_names.append(row.STATION_NAME)
             calls.append(row.CALL)
             ctrys.append(row.CTRY)
@@ -757,9 +797,6 @@ Notes:
         )
 
         # Set long names and units
-
-        ds['STATION_ID'].attrs['long_name'] = 'Station USAF and WBAN id'
-        ds['STATION_ID'].attrs['units'] = ''
 
         for column_name, column_long_name, column_unit in zip(
             self.column_names, self.column_long_names, self.column_units, strict=False
