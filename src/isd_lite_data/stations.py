@@ -134,8 +134,6 @@ class Stations:
 
         meta_data = cls._read_fwf(text_stream)
         
-        meta_data = cls._clean_meta_data(meta_data)
-        
         return cls(meta_data)
 
     @classmethod
@@ -155,8 +153,6 @@ class Stations:
         """
         
         meta_data = cls._read_fwf(file_path)
-        
-        meta_data = cls._clean_meta_data(meta_data)
         
         return cls(meta_data)
 
@@ -228,6 +224,10 @@ class Stations:
             na_filter=False,
         )
         
+        # Clean the data
+        df = cls._clean_meta_data(df)
+        
+        # Add column with combined USAF/WBAN station id
         df['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
         
         return df
