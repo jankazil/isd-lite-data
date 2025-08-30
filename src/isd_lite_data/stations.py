@@ -114,38 +114,6 @@ class Stations:
         return
 
     @classmethod
-    def _read_fwf(cls,source) -> pd.DataFrame:
-        """
-        Internal helper to read the fixed-width file into a DataFrame from any valid source (path, file-like, StringIO, etc.).
-        
-        Args:
-            source (str | Path | file-like):
-                The input source for the fixed-width data.
-
-        Returns:
-            pd.DataFrame:
-                A DataFrame containing the raw station metadata, with all fields
-                read as strings and no NA filtering or type conversion applied.
-        """
-        
-        # Define widths of column names
-        widths = [6, 6, 30, 3, 5, 5, 9, 9, 8, 9, 9]
-
-        df = pd.read_fwf(
-            source,
-            widths=widths,
-            skiprows=22,
-            names=cls.column_names[0:11],
-            dtype=str,
-            keep_default_na=False,
-            na_filter=False,
-        )
-        
-        df['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
-        
-        return df
-
-    @classmethod
     def from_url(cls) -> Self:
         """
 
@@ -233,6 +201,38 @@ class Stations:
         metadata['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
 
         return cls(metadata, observations=ds)
+
+    @classmethod
+    def _read_fwf(cls,source) -> pd.DataFrame:
+        """
+        Internal helper to read the fixed-width file into a DataFrame from any valid source (path, file-like, StringIO, etc.).
+        
+        Args:
+            source (str | Path | file-like):
+                The input source for the fixed-width data.
+
+        Returns:
+            pd.DataFrame:
+                A DataFrame containing the raw station metadata, with all fields
+                read as strings and no NA filtering or type conversion applied.
+        """
+        
+        # Define widths of column names
+        widths = [6, 6, 30, 3, 5, 5, 9, 9, 8, 9, 9]
+
+        df = pd.read_fwf(
+            source,
+            widths=widths,
+            skiprows=22,
+            names=cls.column_names[0:11],
+            dtype=str,
+            keep_default_na=False,
+            na_filter=False,
+        )
+        
+        df['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
+        
+        return df
 
     @staticmethod
     def _clean_meta_data(meta_data: pd.DataFrame) -> pd.DataFrame:
