@@ -198,8 +198,6 @@ class Stations:
 
         metadata = ds[cls.column_names].to_dataframe().reset_index(drop=True)
         
-        metadata['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
-
         return cls(metadata, observations=ds)
 
     @classmethod
