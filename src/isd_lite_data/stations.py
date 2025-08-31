@@ -16,6 +16,7 @@ import xarray as xr
 
 from isd_lite_data import ncei
 
+
 class Stations:
     """
 
@@ -49,7 +50,7 @@ class Stations:
         'ELEV',
         'BEGIN',
         'END',
-        'STATION_ID'
+        'STATION_ID',
     ]
 
     column_long_names = [
@@ -127,13 +128,13 @@ class Stations:
             Stations: An instance of Stations initialized with data obtained online.
 
         """
-        
+
         response = requests.get(ncei.isd_lite_stations_url)
         response.raise_for_status()
         text_stream = StringIO(response.text)
 
         meta_data = cls._read_fwf(text_stream)
-        
+
         return cls(meta_data)
 
     @classmethod
@@ -151,9 +152,9 @@ class Stations:
             Stations: An instance of Stations initialized with data from the file.
 
         """
-        
+
         meta_data = cls._read_fwf(file_path)
-        
+
         return cls(meta_data)
 
     @classmethod
@@ -193,14 +194,14 @@ class Stations:
         # Construct metadata
 
         metadata = ds[cls.column_names].to_dataframe().reset_index(drop=True)
-        
+
         return cls(metadata, observations=ds)
 
     @classmethod
-    def _read_fwf(cls,source) -> pd.DataFrame:
+    def _read_fwf(cls, source) -> pd.DataFrame:
         """
         Internal helper to read the fixed-width file into a DataFrame from any valid source (path, file-like, StringIO, etc.).
-        
+
         Args:
             source (str | Path | file-like):
                 The input source for the fixed-width data.
@@ -210,7 +211,7 @@ class Stations:
                 A DataFrame containing the raw station metadata, with all fields
                 read as strings and no NA filtering or type conversion applied.
         """
-        
+
         # Define widths of column names
         widths = [6, 6, 30, 3, 5, 5, 9, 9, 8, 9, 9]
 
@@ -223,18 +224,17 @@ class Stations:
             keep_default_na=False,
             na_filter=False,
         )
-        
+
         # Clean the data
         df = cls._clean_meta_data(df)
-        
+
         # Add column with combined USAF/WBAN station id
         df['STATION_ID'] = df['USAF'] + '-' + df['WBAN']
-        
+
         return df
 
     @staticmethod
     def _clean_meta_data(meta_data: pd.DataFrame) -> pd.DataFrame:
-        
         """
 
         Cleans up a Pandas DataFrame holding IDSLite station metadata that have been read
@@ -273,11 +273,13 @@ class Stations:
 
         # Filter out rows with latitude or longitude holding a Nan, reset index and drop old index
 
-        meta_data = meta_data.dropna(subset=['LAT','LON']).reset_index(drop=True)
+        meta_data = meta_data.dropna(subset=['LAT', 'LON']).reset_index(drop=True)
 
         # Filter out rows with 'BOGUS' in the station name, reset index and drop old index
 
-        meta_data = meta_data[~meta_data['STATION_NAME'].str.contains('BOGUS', na=False)].reset_index(drop=True)
+        meta_data = meta_data[
+            ~meta_data['STATION_NAME'].str.contains('BOGUS', na=False)
+        ].reset_index(drop=True)
 
         return meta_data
 
