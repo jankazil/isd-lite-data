@@ -105,10 +105,10 @@ class Stations:
 
         """
 
-        self.meta_data = meta_data.copy()
+        self.meta_data = meta_data.copy(deep=True)
 
         if observations is not None:
-            self.observations = observations.copy()
+            self.observations = observations.copy(deep=True)
         else:
             self.observations = None
 
