@@ -173,7 +173,18 @@ class Stations:
         # Read the observations from the netCDF file
 
         observations = xr.load_dataset(file_path)
+        
+        # Add a variable holding the UTC time
+        
+        times = pd.to_datetime(observations.coords['time'].values)
 
+        if times.tz is None:
+            times = times.tz_localize('UTC')
+        else:
+            times = times.tz_convert('UTC')
+        
+        observations['UTC'] = ('time', times.to_pydatetime())
+        
         # Construct metadata
 
         metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
@@ -863,8 +874,14 @@ Notes:
             },
         }
 
-        self.observations.to_netcdf(file_path, encoding=encoding)
-
+        # Identify any variables in the xarray that hold objects (such as datatime objects)
+        object_vars = [name for name, var in self.observations.data_vars.items() if var.dtype == object]
+        
+        # Save to netCDF skipping any variables that are objects
+        if object_vars:
+            self.observations.drop_vars(object_vars).to_netcdf(file_path, encoding=encoding)
+        else:
+            self.observations.to_netcdf(file_path, encoding=encoding)
         return
 
     def read_station_observations(
