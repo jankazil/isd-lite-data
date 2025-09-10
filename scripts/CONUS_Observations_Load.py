@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Demonstrates loading ISD Lite station observations for a set of stations and a specified year range
 from local gzipped NCEI ISD Lite files. The observations are loaded into the Stations.observations

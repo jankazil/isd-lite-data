@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 Demonstrates loading ISD Lite station metadata and observations from a local netCDF file.
 

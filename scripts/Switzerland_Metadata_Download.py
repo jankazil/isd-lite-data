@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 
 Downloads IDSLite station metadata and filters the stations to obtain stations

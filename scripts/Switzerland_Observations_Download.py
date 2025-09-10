@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 """
 
 Downloads IDSLite station observations for stations in a given stations database file.
