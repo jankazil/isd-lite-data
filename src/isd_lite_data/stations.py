@@ -836,9 +836,10 @@ Notes:
         # Add global attributes
         #
 
-        ds.attrs['data_name'] = 'ISD-Lite'
-        ds.attrs['data_long_name'] = 'Integrated Surface Dataset Lite observations'
-        ds.attrs['data_description'] = 'Integrated Surface Dataset Lite (ISD-Lite) observations'
+        ds.attrs['name'] = 'ISD-Lite'
+        ds.attrs['long_name'] = 'Integrated Surface Dataset Lite observations'
+        ds.attrs['description'] = 'Integrated Surface Dataset Lite (ISD-Lite) observations'
+        ds.attrs['region'] = 'unspecified'
         ds.attrs['source'] = 'National Centers for Environmental Information (NCEI)'
         ds.attrs['URL'] = ncei.isd_lite_url
         ds.attrs['processed_with'] = 'https://github.com/jankazil/isd-lite-data'
