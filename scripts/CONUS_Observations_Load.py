@@ -37,6 +37,8 @@ conus_stations = stations.Stations.from_file(file_path)
 
 conus_stations.load_observations(data_dir, start_year, end_year, verbose=True)
 
+conus_stations.observations.attrs['region'] = 'Contiguous US'
+
 #
 # Save observations as netCDF file
 #

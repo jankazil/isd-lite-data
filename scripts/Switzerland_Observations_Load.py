@@ -37,6 +37,8 @@ switzerland_stations = stations.Stations.from_file(file_path)
 
 switzerland_stations.load_observations(data_dir, start_year, end_year, verbose=True)
 
+switzerland_stations.observations.attrs['region'] = 'Switzerland'
+
 #
 # Save observations as netCDF file
 #
