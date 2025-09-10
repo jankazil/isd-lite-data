@@ -163,7 +163,7 @@ class Stations:
         Alternative constructor, initializes the ISD station metadata and
         ISD Lite station observations from a netCDF file that was created with
         self.write_observations2netcdf.
-        
+
         A variable 'UTC' with the UTC time as datetime objects is added.
 
         Args:
@@ -175,18 +175,18 @@ class Stations:
         # Read the observations from the netCDF file
 
         observations = xr.load_dataset(file_path)
-        
+
         # Add a variable holding the UTC time as datetime objects
-        
+
         times = pd.to_datetime(observations.coords['time'].values)
 
         if times.tz is None:
             times = times.tz_localize('UTC')
         else:
             times = times.tz_convert('UTC')
-        
+
         observations['UTC'] = ('time', times.to_pydatetime())
-        
+
         # Construct metadata
 
         metadata = observations[cls.column_names].to_dataframe().reset_index(drop=True)
@@ -692,7 +692,7 @@ Notes:
 
         The files must already exist in the specified directory,
         having been previously downloaded from the web.
-        
+
         A variable 'UTC' with the UTC time as datetime objects is added.
 
         Args:
@@ -793,16 +793,16 @@ Notes:
             ds[var_name].attrs['units'] = var_unit
 
         # Add a variable holding the UTC time as datetime objects
-        
+
         times = pd.to_datetime(ds.coords['time'].values)
 
         if times.tz is None:
             times = times.tz_localize('UTC')
         else:
             times = times.tz_convert('UTC')
-        
+
         ds['UTC'] = ('time', times.to_pydatetime())
-        
+
         #
         # Add variables that are a function of station only (as data variables)
         #
@@ -893,8 +893,10 @@ Notes:
         }
 
         # Identify any variables in the xarray that hold objects (such as datatime objects)
-        object_vars = [name for name, var in self.observations.data_vars.items() if var.dtype == object]
-        
+        object_vars = [
+            name for name, var in self.observations.data_vars.items() if var.dtype == object
+        ]
+
         # Save to netCDF skipping any variables that are objects
         if object_vars:
             self.observations.drop_vars(object_vars).to_netcdf(file_path, encoding=encoding)
