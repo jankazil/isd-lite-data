@@ -841,6 +841,7 @@ Notes:
         ds.attrs['data_description'] = 'Integrated Surface Dataset Lite (ISD-Lite) observations'
         ds.attrs['source'] = 'National Centers for Environmental Information (NCEI)'
         ds.attrs['URL'] = ncei.isd_lite_url
+        ds.attrs['processed_with'] = 'https://github.com/jankazil/isd-lite-data'
 
         #
         # Assign to instance variable
