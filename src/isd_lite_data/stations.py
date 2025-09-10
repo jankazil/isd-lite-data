@@ -836,7 +836,9 @@ Notes:
         # Add global attributes
         #
 
-        ds.attrs['title'] = 'ISD-Lite station observations'
+        ds.attrs['data_name'] = 'ISD-Lite'
+        ds.attrs['data_long_name'] = 'Integrated Surface Dataset Lite observations'
+        ds.attrs['data_description'] = 'Integrated Surface Dataset Lite (ISD-Lite) observations'
         ds.attrs['source'] = 'National Centers for Environmental Information (NCEI)'
         ds.attrs['URL'] = ncei.isd_lite_url
 
