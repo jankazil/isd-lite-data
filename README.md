@@ -76,7 +76,7 @@ Scripts are intended to be executed in the following sequence:
   Download the ISDLite station observations and produce:
   - `data/USAF_ID-WBAN_ID-YYYY.gz`:  
      files with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
-- `scripts/Switzerland_Observations_Load.py`  
+- `scripts/Switzerland_Create_netCDF.py`  
   Load the ISDLite station observationsand produce:
   - `data/switzerland_stations.2020-2023.nc`:  
      netCDF file with observations of Swiss stations for which observations are available for download between 2020-12-03 and 2023-12-31. 
@@ -95,7 +95,7 @@ Scripts are intended to be executed in the following sequence:
   Download the ISDLite station observations and produce:
   - `data/USAF_ID-WBAN_ID-YYYY.gz`:  
      files with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31. 
-- `scripts/CONUS_Observations_Load.py`  
+- `scripts/CONUS_Observations_Create_netCDF.py`  
   Load the ISDLite station observations and produce:
   - `data/conus_stations.2020-2025.nc`:  
      netCDF file with observations at CONUS stations for which observations are available for download between 2020-12-03 and 2025-07-31.

@@ -5,7 +5,10 @@ Tools for download of ISD Lite data from National Centers for Environmental Info
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
+import re
 import requests
+from urllib.parse import urljoin, urlparse
+from bs4 import BeautifulSoup
 
 # ISD Lite data URL
 isd_lite_url = 'https://www.ncei.noaa.gov/pub/data/noaa/isd-lite'
@@ -27,9 +30,79 @@ def isdlite_data_url(year: int, usaf_id: str, wban_id: str) -> str:
         str: URL of a NCEI ISD Lite station data file
     """
 
-    url = isd_lite_url + '/' + str(year) + '/' + ISDLite_data_file_name(year, usaf_id, wban_id)
+    url = isd_lite_url.rstrip('/') + '/' + str(year) + '/' + ISDLite_data_file_name(year, usaf_id, wban_id)
 
     return url
+
+
+def isdlite_data_urls(start_year: int, end_year: int, timeout: float = 20.0) -> list[str]:
+    """
+    Collects all file URLs from the NOAA ISD-Lite directory for the inclusive
+    range of years [start_year, end_year].
+
+    It fetches each year's HTML directory index at:
+        https://www.ncei.noaa.gov/pub/data/noaa/isd-lite/{year}/
+    parses the links, and returns absolute URLs for files only (not subdirectories).
+
+    Args:
+        start_year (int): First year to include (inclusive).
+        end_year   (int): Last year to include (inclusive). Must be >= start_year.
+        timeout   (float): Per-request timeout in seconds.
+
+    Returns:
+        list[str]: Absolute URLs of files under the specified year directories.
+    """
+    if end_year < start_year:
+        raise ValueError("end_year must be greater than or equal to start_year.")
+    
+    headers = {"User-Agent": "Mozilla/5.0"}
+    file_urls: set[str] = set()
+    
+    # Simple and robust anchor href extractor (double or single quotes)
+    href_re = re.compile(r"""<a\s+[^>]*href\s*=\s*(['"])(?P<href>[^'"]+)\1""", re.IGNORECASE)
+    
+    isd_lite_url_ = isd_lite_url.rstrip('/')
+    
+    for year in range(start_year, end_year + 1):
+        year_dir = f"{isd_lite_url_}/{year}/"
+        print('Collecting file URLs from NCEI server directory',year_dir)
+        try:
+            resp = requests.get(year_dir, allow_redirects=True, timeout=timeout, headers=headers)
+        except requests.RequestException:
+            continue
+        
+        content_type = resp.headers.get("Content-Type", "")
+        if resp.status_code >= 400 or "text/html" not in content_type:
+            continue
+        
+        # Normalize and constrain to the year directory
+        parsed_year = urlparse(year_dir)
+        year_path_prefix = parsed_year.path
+        
+        for m in href_re.finditer(resp.text):
+            href = m.group("href")
+            
+            # Skip parent or root links
+            if href in ("../", "/"):
+                continue
+            # Skip obvious directories (links ending with '/')
+            if href.endswith("/"):
+                continue
+            
+            abs_url = urljoin(year_dir, href)
+            p = urlparse(abs_url)
+            
+            # Constrain to same host and year directory to avoid traversing upward
+            if p.scheme not in ("http", "https"):
+                continue
+            if p.netloc != parsed_year.netloc:
+                continue
+            if not p.path.startswith(year_path_prefix):
+                continue
+            
+            file_urls.add(p._replace(params="", query="", fragment="").geturl())
+        
+    return sorted(file_urls)
 
 
 def ISDLite_data_file_name(year: int, usaf_id: str, wban_id: str) -> str:
@@ -164,37 +237,6 @@ def download_many(
     return all_local_file_paths
 
 
-def check_station(
-    start_year: int,
-    end_year: int,
-    usaf_id: str,
-    wban_id: str,
-) -> bool:
-    """
-    Checks whether observation files exist online for the given year range (inclusive) for a given station.
-
-    For the given station, this function constructs URLs for each year
-    in the specified date range and checks if data are available at those URLs.
-    If all required files are present, the station is marked as available.
-
-    Args:
-        start_year (int): Gregorian year of the first data file to be checked.
-        end_year (int): Gregorian year of the last data file to be checked.
-        usaf_id (str): Air Force station ID. May contain a letter in the first position.
-        wban_id (str): Weather Bureau Army Navy station ID.
-
-    Returns:
-        bool: True if data are available for all years in the date range, False otherwise.
-    """
-
-    for year in range(start_year, end_year + 1):
-        url = isdlite_data_url(year, usaf_id, wban_id)
-        if not url_exists(url):
-            return False
-
-    return True
-
-
 def download_threaded(
     urls: list[str], paths: list[Path], n_jobs=8, refresh: bool = False, verbose: bool = False
 ):
@@ -303,19 +345,3 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
     return
 
 
-def url_exists(url: str) -> bool:
-    """
-    Checks if a file exists at a given URL.
-
-    Args:
-        url (str): uniform resource locator
-
-    Returns:
-        bool: True if file exists at given URL, False othewise
-    """
-
-    try:
-        response = requests.head(url, allow_redirects=True, timeout=20)
-        return response.status_code == 200  # A status code of 200 means the file exists
-    except requests.RequestException:
-        return False

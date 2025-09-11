@@ -499,7 +499,7 @@ Notes:
         return Stations(meta_data)
 
     def filter_by_data_availability(
-        self, start_time: datetime, end_time: datetime, n_jobs: int = 8, verbose: bool = False
+        self, start_time: datetime, end_time: datetime, verbose: bool = False
     ) -> Self:
         """
 
@@ -522,6 +522,10 @@ Notes:
 
         """
 
+        # Get the URLs of all ISD Lite data files on the NCEI web server:
+
+        all_file_urls = ncei.isdlite_data_urls(start_time.year,end_time.year)
+        
         #
         # Construct a new dataframe
         #
@@ -530,40 +534,37 @@ Notes:
             print()
             print(
                 'Filtering out stations for which not all files with observations are available in the period of interest',
-                str(start_time),
+                str(start_time.year),
                 'to',
-                str(end_time),
+                str(end_time.year),
             )
             print()
 
         filtered_rows = []
-
-        with ThreadPoolExecutor(max_workers=n_jobs) as executor:
-            future_to_row = {
-                executor.submit(
-                    ncei.check_station, start_time.year, end_time.year, row['USAF'], row['WBAN']
-                ): row
-                for _, row in self.meta_data.iterrows()
-            }
-
-            for future in as_completed(future_to_row):
-                row = future_to_row[future]
-                observations_files_available = future.result()
-
-                if observations_files_available:
-                    filtered_rows.append(row)
-                    if verbose:
-                        print('Including station', row['USAF'], row['WBAN'], row['STATION_NAME'])
-                else:
-                    if verbose:
-                        print(
-                            'Excluding station',
-                            row['USAF'],
-                            row['WBAN'],
-                            row['STATION_NAME'],
-                            '(not all files with observations are available for download)',
-                        )
-
+        
+        for _, row in self.meta_data.iterrows():
+            
+            observations_files_available = True
+            
+            for year in range(start_time.year, end_time.year + 1):
+                url = ncei.isdlite_data_url(year, row['USAF'], row['WBAN'])
+                if url not in all_file_urls:
+                    observations_files_available = False
+            
+            if observations_files_available:
+                filtered_rows.append(row)
+                if verbose:
+                    print('Including station', row['USAF'], row['WBAN'], row['STATION_NAME'])
+            else:
+                if verbose:
+                    print(
+                        'Excluding station',
+                        row['USAF'],
+                        row['WBAN'],
+                        row['STATION_NAME'],
+                        '(not all files with observations for the time range are available for download)',
+                    )
+        
         # Construct a new DataFrame from the selected rows
         meta_data = pd.DataFrame(filtered_rows, columns=self.meta_data.columns)
 
@@ -572,6 +573,7 @@ Notes:
         meta_data = meta_data.reset_index(drop=True)
 
         return Stations(meta_data)
+
 
     def id(self) -> list[list[str]]:
         """

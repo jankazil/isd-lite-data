@@ -48,9 +48,7 @@ conus_stations = conus_stations.filter_by_period(start_date, end_date)
 
 # Filter the stations by whether observations are available for download for the given period
 
-conus_stations = conus_stations.filter_by_data_availability(
-    start_date, end_date, n_jobs=32, verbose=True
-)
+conus_stations = conus_stations.filter_by_data_availability(start_date, end_date, verbose=True)
 
 #
 # Save the stations metadata

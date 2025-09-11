@@ -44,7 +44,7 @@ local_files = ncei.download_many(
     end_date.year,
     switzerland_stations.id(),
     data_dir,
-    n_jobs=32,
+    n_jobs=1, # njobs > 1 accelerates downloads significantly, but can result in network errors / the server refusing to cooperate due
     refresh=False,
     verbose=True,
 )
