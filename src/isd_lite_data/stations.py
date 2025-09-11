@@ -3,7 +3,6 @@ Classes to hold ISD Lite data and perform operations on them.
 """
 
 import gzip
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from io import StringIO
 from pathlib import Path

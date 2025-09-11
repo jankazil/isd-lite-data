@@ -2,13 +2,12 @@
 Tools for download of ISD Lite data from National Centers for Environmental Information (NCEI), https://www.ncei.noaa.gov.
 """
 
+import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-
-import re
-import requests
 from urllib.parse import urljoin, urlparse
-from bs4 import BeautifulSoup
+
+import requests
 
 # ISD Lite data URL
 isd_lite_url = 'https://www.ncei.noaa.gov/pub/data/noaa/isd-lite'
