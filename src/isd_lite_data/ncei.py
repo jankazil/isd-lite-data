@@ -30,7 +30,13 @@ def isdlite_data_url(year: int, usaf_id: str, wban_id: str) -> str:
         str: URL of a NCEI ISD Lite station data file
     """
 
-    url = isd_lite_url.rstrip('/') + '/' + str(year) + '/' + ISDLite_data_file_name(year, usaf_id, wban_id)
+    url = (
+        isd_lite_url.rstrip('/')
+        + '/'
+        + str(year)
+        + '/'
+        + ISDLite_data_file_name(year, usaf_id, wban_id)
+    )
 
     return url
 
@@ -54,44 +60,44 @@ def isdlite_data_urls(start_year: int, end_year: int, timeout: float = 20.0) -> 
     """
     if end_year < start_year:
         raise ValueError("end_year must be greater than or equal to start_year.")
-    
+
     headers = {"User-Agent": "Mozilla/5.0"}
     file_urls: set[str] = set()
-    
+
     # Simple and robust anchor href extractor (double or single quotes)
     href_re = re.compile(r"""<a\s+[^>]*href\s*=\s*(['"])(?P<href>[^'"]+)\1""", re.IGNORECASE)
-    
+
     isd_lite_url_ = isd_lite_url.rstrip('/')
-    
+
     for year in range(start_year, end_year + 1):
         year_dir = f"{isd_lite_url_}/{year}/"
-        print('Collecting file URLs from NCEI server directory',year_dir)
+        print('Collecting file URLs from NCEI server directory', year_dir)
         try:
             resp = requests.get(year_dir, allow_redirects=True, timeout=timeout, headers=headers)
         except requests.RequestException:
             continue
-        
+
         content_type = resp.headers.get("Content-Type", "")
         if resp.status_code >= 400 or "text/html" not in content_type:
             continue
-        
+
         # Normalize and constrain to the year directory
         parsed_year = urlparse(year_dir)
         year_path_prefix = parsed_year.path
-        
+
         for m in href_re.finditer(resp.text):
             href = m.group("href")
-            
+
             # Skip parent or root links
             if href in ("../", "/"):
                 continue
             # Skip obvious directories (links ending with '/')
             if href.endswith("/"):
                 continue
-            
+
             abs_url = urljoin(year_dir, href)
             p = urlparse(abs_url)
-            
+
             # Constrain to same host and year directory to avoid traversing upward
             if p.scheme not in ("http", "https"):
                 continue
@@ -99,9 +105,9 @@ def isdlite_data_urls(start_year: int, end_year: int, timeout: float = 20.0) -> 
                 continue
             if not p.path.startswith(year_path_prefix):
                 continue
-            
+
             file_urls.add(p._replace(params="", query="", fragment="").geturl())
-        
+
     return sorted(file_urls)
 
 
@@ -343,5 +349,3 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
         f.write(etag)
 
     return
-
-

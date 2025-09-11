@@ -50,7 +50,9 @@ switzerland_stations = switzerland_stations.filter_by_period(start_date, end_dat
 
 # Filter the stations by whether observations are available for download for the given period
 
-switzerland_stations = switzerland_stations.filter_by_data_availability(start_date, end_date, verbose=True)
+switzerland_stations = switzerland_stations.filter_by_data_availability(
+    start_date, end_date, verbose=True
+)
 
 #
 # Save the stations metadata
