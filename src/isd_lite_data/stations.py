@@ -860,7 +860,7 @@ Notes:
         """
 
         # Remove attribute/encoding conflicts with any units set previously on time-like variables
-        for name in ('time', 'BEGIN', 'END'):
+        for name in ('time'):
             if name in self.observations.variables:
                 # Remove conflicting 'units' or 'calendar' attributes if present
                 for key in ('units', 'calendar'):
@@ -871,16 +871,6 @@ Notes:
 
         encoding = {
             "time": {
-                "dtype": "float64",
-                "units": "seconds since 1970-01-01T00:00:00Z",
-                "calendar": "proleptic_gregorian",
-            },
-            "BEGIN": {
-                "dtype": "float64",
-                "units": "seconds since 1970-01-01T00:00:00Z",
-                "calendar": "proleptic_gregorian",
-            },
-            "END": {
                 "dtype": "float64",
                 "units": "seconds since 1970-01-01T00:00:00Z",
                 "calendar": "proleptic_gregorian",
