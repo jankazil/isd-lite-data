@@ -5,8 +5,13 @@ description = "A toolkit for accessing, downloading, and processing ISD Lite dat
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "jkazil" }]
-dependencies = []
+authors = [{ name = "Jan Kazil" }]
+dependencies = [
+  "numpy==2.3.3",
+  "pandas==2.3.2",
+  "Requests==2.32.5",
+  "xarray==2025.8.0",
+]
 
 [project.optional-dependencies]
 dev = [
