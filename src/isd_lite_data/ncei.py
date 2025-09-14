@@ -191,7 +191,7 @@ def download_many(
     end_year: int,
     ids: list[list[str]],
     local_dir: Path,
-    n_jobs: int = 8,
+    n_jobs: int = 1,
     refresh: bool = False,
     verbose: bool = False,
 ) -> list[Path]:
@@ -243,7 +243,7 @@ def download_many(
 
 
 def download_threaded(
-    urls: list[str], paths: list[Path], n_jobs=8, refresh: bool = False, verbose: bool = False
+    urls: list[str], paths: list[Path], n_jobs=1, refresh: bool = False, verbose: bool = False
 ):
     """
     Downloads a given number of files from given URLs to given local paths, in parallel.
@@ -255,7 +255,10 @@ def download_threaded(
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
         verbose (bool): If True, print information. Defaults to False.
     """
-
+    
+    if n_jobs is None:
+        n_jobs = 1
+    
     if len(urls) != len(paths):
         raise ValueError("The number of URLs must match the number of local paths.")
 
