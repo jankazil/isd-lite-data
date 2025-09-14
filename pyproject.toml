@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
 authors = [{ name = "Jan Kazil" }]
+
 dependencies = [
   "numpy==2.3.3",
   "pandas==2.3.2",
@@ -20,6 +21,14 @@ dev = [
   "mypy>=1.11",
   "ruff>=0.5",
   "pre-commit>=3.7",
+]
+
+[tool.setuptools]
+script-files = [
+  "scripts/CONUS_Metadata_Download.py",
+  "scripts/CONUS_Observations_Download.py",
+  "scripts/Switzerland_Metadata_Download.py",
+  "scripts/Switzerland_Observations_Download.py",
 ]
 
 [build-system]
