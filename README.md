@@ -58,7 +58,7 @@ Downloads IDS-Lite station observations for all stations listed in a previously 
 
 ## Demo Scripts
 
-This repository also provides example scripts demonstrating downloading and pre-processing IDS-Lite data.
+This repository provides example scripts demonstrating downloading and pre-processing IDS-Lite data in the directory demos.
 
 ## Public API
 
