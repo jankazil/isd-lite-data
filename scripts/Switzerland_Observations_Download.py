@@ -41,13 +41,12 @@ Example:
 '''
 
 import argparse
-import subprocess
 import sys
-
 from datetime import datetime
 from pathlib import Path
 
 from isd_lite_data import ncei, stations
+
 
 def arg_parse(argv=None):
     '''
@@ -55,16 +54,15 @@ def arg_parse(argv=None):
     '''
 
     code_description = (
-    'Download IDSLite observations for all stations listed in a previously '
-    'generated station metadata file. The script requires start and end dates '
-    'defining the period of interest, as well as the directory containing the '
-    'station metadata file (created using Switzerland_Metadata_Download.py). '
-    'It loads the station list, verifies that the file exists, and downloads all '
-    'available observations for those stations during the specified date range. '
-    'An optional argument allows for parallel downloads to speed up data retrieval.'
+        'Download IDSLite observations for all stations listed in a previously '
+        'generated station metadata file. The script requires start and end dates '
+        'defining the period of interest, as well as the directory containing the '
+        'station metadata file (created using Switzerland_Metadata_Download.py). '
+        'It loads the station list, verifies that the file exists, and downloads all '
+        'available observations for those stations during the specified date range. '
+        'An optional argument allows for parallel downloads to speed up data retrieval.'
     )
-    
-    
+
     parser = argparse.ArgumentParser(description=code_description)
 
     # Mandatory arguments
@@ -74,10 +72,19 @@ def arg_parse(argv=None):
     parser.add_argument('end_year', type=int, help='End year of time range.')
     parser.add_argument('end_month', type=int, help='End month of time range.')
     parser.add_argument('end_day', type=int, help='End day of time range.')
-    parser.add_argument('data_dir',type=str,help='Directory path into which the data will be downloaded. Must contain station metadata file downloaded previously with Switzerland_Metadata_Download.py.',)
+    parser.add_argument(
+        'data_dir',
+        type=str,
+        help='Directory path into which the data will be downloaded. Must contain station metadata file downloaded previously with Switzerland_Metadata_Download.py.',
+    )
 
     # Optional arguments
-    parser.add_argument('-n','--n', type=int, help='Number of parallel download processes. n > 1 accelerates downloads significantly, but can result in network errors or in the server refusing to cooperate.')
+    parser.add_argument(
+        '-n',
+        '--n',
+        type=int,
+        help='Number of parallel download processes. n > 1 accelerates downloads significantly, but can result in network errors or in the server refusing to cooperate.',
+    )
 
     args = parser.parse_args()
 
@@ -87,6 +94,7 @@ def arg_parse(argv=None):
     n_jobs = args.n
 
     return (start_date, end_date, data_dir, n_jobs)
+
 
 (start_date, end_date, data_dir, n_jobs) = arg_parse(sys.argv[1:])
 

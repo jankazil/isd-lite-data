@@ -255,10 +255,10 @@ def download_threaded(
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
         verbose (bool): If True, print information. Defaults to False.
     """
-    
+
     if n_jobs is None:
         n_jobs = 1
-    
+
     if len(urls) != len(paths):
         raise ValueError("The number of URLs must match the number of local paths.")
 

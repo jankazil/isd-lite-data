@@ -331,7 +331,7 @@ Notes:
   available. To determine data availability for each location, see the 
   'isd-inventory.txt' or 'isd-inventory.csv' file. 
 """
-        
+
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
         columns_title = 'USAF   WBAN  STATION NAME                  CTRY ST CALL  LAT     LON      ELEV    BEGIN    END'
@@ -862,7 +862,7 @@ Notes:
         """
 
         # Remove attribute/encoding conflicts with any units set previously on time-like variables
-        for name in ('time'):
+        for name in 'time':
             if name in self.observations.variables:
                 # Remove conflicting 'units' or 'calendar' attributes if present
                 for key in ('units', 'calendar'):

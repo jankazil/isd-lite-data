@@ -1,12 +1,12 @@
 '''
-This script demonstrates how to load ISD-Lite station metadata and observations 
-from a previously created NetCDF file. The NetCDF file must have been generated 
+This script demonstrates how to load ISD-Lite station metadata and observations
+from a previously created NetCDF file. The NetCDF file must have been generated
 using demo_switzerland_observations_create_netcdf.py.
 
 Workflow:
 1. Defines the data directory where the NetCDF file is stored.
 2. Constructs the NetCDF file name based on the start and end year.
-3. Loads both station metadata and observations from the NetCDF file into a 
+3. Loads both station metadata and observations from the NetCDF file into a
    Stations object.
    - Metadata are loaded into the `Stations.metadata` Pandas DataFrame.
    - Observations are loaded into the `Stations.observations` xarray Dataset.
@@ -17,12 +17,12 @@ Input:
       located in the data directory.
 
 Output:
-    - A fully populated Stations object with both metadata and observations 
+    - A fully populated Stations object with both metadata and observations
       available for further analysis.
 
 Example:
-    Run this script after creating the NetCDF file with 
-    demo_switzerland_observations_create_netcdf.py. The resulting `switzerland_stations` 
+    Run this script after creating the NetCDF file with
+    demo_switzerland_observations_create_netcdf.py. The resulting `switzerland_stations`
     object can then be used for data inspection, visualization, or analysis.
 '''
 
