@@ -304,7 +304,7 @@ class Stations:
         Args:
             title_line (str): First line in the file, can be used to describe specifics
                               of the stations in the file, e.g., "Stations in Texas between 2002-2012 for which data are available for download"
-            file_path (Path): Path to file with station metadata
+            file_path (Path): Path to file with station metadata. Parent directory path will be created if it does not exist.
 
         Returns:
 
@@ -331,6 +331,8 @@ Notes:
   available. To determine data availability for each location, see the 
   'isd-inventory.txt' or 'isd-inventory.csv' file. 
 """
+        
+        file_path.parent.mkdir(parents=True, exist_ok=True)
 
         columns_title = 'USAF   WBAN  STATION NAME                  CTRY ST CALL  LAT     LON      ELEV    BEGIN    END'
 
