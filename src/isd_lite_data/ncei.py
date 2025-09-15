@@ -5,6 +5,7 @@ Tools for download of ISD Lite data from National Centers for Environmental Info
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+import time
 from urllib.parse import urljoin, urlparse
 
 import requests
@@ -135,6 +136,10 @@ def download_stations(local_file: Path):
     Args:
         local_file (Path): Local file where the downloaded file will be saved.
     """
+
+    # Create parent directory if needed
+
+    local_file.parent.mkdir(parents=True, exist_ok=True)
 
     # Download file
 
@@ -275,7 +280,7 @@ def download_threaded(
 
 
 def download_file(url: str, local_file_path: Path, refresh: bool = False, verbose: bool = False):
-    """
+    '''
     Downloads a file from a given URL to a given local path.
 
         Args:
@@ -286,14 +291,26 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
                                   - if the local ETag of the file matches its ETag online, then the file will not be downloaded.
                                   - if the local ETag of the file differs from its ETag online, then the file will be downloaded.
         verbose (bool): If True, print information. Defaults to False.
-    """
+    '''
 
-    # Get ETag
+    max_retries = 20
+    delay_seconds = 3
 
-    response = requests.head(url)
+    # Get ETag with retry
+    for attempt in range(max_retries):
+        try:
+            response = requests.head(url, timeout=10)
+            response.raise_for_status()
+            break
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries - 1:
+                if verbose:
+                    print(f'HEAD request failed ({e}), retrying in {delay_seconds} second(s)...')
+                time.sleep(delay_seconds)
+            else:
+                raise
 
-    etag = response.headers.get("ETag")
-
+    etag = response.headers.get('ETag')
     if etag is None:
         message = (
             '\n'
@@ -304,18 +321,11 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
         )
         raise Exception(message)
 
-    # Check if file already exists and its ETag is the same as the ETag of the file requested for download
-
     etag_file_path = local_file_path.with_name(local_file_path.name + '.etag')
 
     if not refresh and local_file_path.exists() and etag_file_path.exists():
-        # Read local ETag
-
         with open(etag_file_path) as f:
             local_etag = f.read().strip()
-
-        # Compare ETags
-
         if local_etag == etag:
             if verbose:
                 print(
@@ -334,20 +344,28 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
                     'and ETag differs from ETag online. Proceeding to download.',
                 )
 
-    with requests.get(url, stream=True) as r:
-        r.raise_for_status()
-
-        with open(local_file_path, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:
-                    f.write(chunk)
+    # Download with retry
+    for attempt in range(max_retries):
+        try:
+            with requests.get(url, stream=True, timeout=30) as r:
+                r.raise_for_status()
+                with open(local_file_path, 'wb') as f:
+                    for chunk in r.iter_content(chunk_size=8192):
+                        if chunk:
+                            f.write(chunk)
+            break
+        except requests.exceptions.RequestException as e:
+            if attempt < max_retries - 1:
+                if verbose:
+                    print(f'Download failed ({e}), retrying in {delay_seconds} second(s)...')
+                time.sleep(delay_seconds)
+            else:
+                raise
 
     if verbose:
         print(url, 'downloaded.')
 
-    # Save ETag
-
-    with open(etag_file_path, "w") as f:
+    with open(etag_file_path, 'w') as f:
         f.write(etag)
 
     return
