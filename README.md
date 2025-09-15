@@ -6,7 +6,9 @@ ISDLite is a product derived from [ISD](https://www.ncei.noaa.gov/products/land-
 
 ## Installation
 
+```bash
 pip install git+https://github.com/jankazil/isd-lite-data
+```
 
 ## Usage
 
