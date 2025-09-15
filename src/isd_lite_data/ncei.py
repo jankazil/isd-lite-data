@@ -3,9 +3,9 @@ Tools for download of ISD Lite data from National Centers for Environmental Info
 """
 
 import re
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
-import time
 from urllib.parse import urljoin, urlparse
 
 import requests
