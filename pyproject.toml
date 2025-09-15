@@ -25,10 +25,8 @@ dev = [
 
 [tool.setuptools]
 script-files = [
-  "scripts/CONUS_Metadata_Download.py",
-  "scripts/CONUS_Observations_Download.py",
-  "scripts/Switzerland_Metadata_Download.py",
-  "scripts/Switzerland_Observations_Download.py",
+  "scripts/Download_CONUS.py",
+  "scripts/Download_Switzerland.py",
 ]
 
 [build-system]
