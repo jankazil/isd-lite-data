@@ -103,10 +103,6 @@ conus_stations = all_stations.filter_by_country(['US'])
 
 conus_stations = conus_stations.filter_by_coordinates(24, 50, -125, -65)
 
-# Filter by period of interest
-
-conus_stations = conus_stations.filter_by_period(start_date, end_date)
-
 # Filter the stations by whether observations are available for download for the given period
 
 conus_stations = conus_stations.filter_by_data_availability(start_date, end_date, verbose=True)
