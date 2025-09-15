@@ -4,7 +4,7 @@
 
 ISDLite is a product derived from [ISD](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database), which is easier to work with for general research and scientific purposes. It is a subset of the full ISD containing eight common surface parameters in a fixed-width format free of duplicate values, sub-hourly data, and complicated flags.
 
-## Installation
+## Installation (Linux / macOS)
 
 ```bash
 pip install git+https://github.com/jankazil/isd-lite-data
