@@ -293,7 +293,7 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
         verbose (bool): If True, print information. Defaults to False.
     '''
 
-    max_retries = 20
+    max_retries = 1200
     delay_seconds = 3
 
     # Get ETag with retry
