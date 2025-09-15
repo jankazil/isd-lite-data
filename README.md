@@ -12,10 +12,16 @@ pip install git+https://github.com/jankazil/isd-lite-data
 
 ## Usage
 
-This repository provides the following top-level scripts for downloading and pre-processing ISDLite data:
+This repository provides the following top-level scripts for downloading and pre-processing ISDLite data for the contiguous United States and Switzerland. The workflow is
 
-### 1. CONUS_Metadata_Download.py
-Downloads IDS-Lite station metadata and filters it to produce a list of stations located in the contiguous United States (CONUS) that have observations available within a user-specified date range. The resulting metadata is stored in a text file for later use.
+1. Download ISD-Lite station metadata file
+2. Download ISD-Lite station observations
+
+### Contiguous United States
+
+**1. CONUS_Metadata_Download.py**
+
+Downloads IDS-Lite station metadata and filters it to produce a list of stations located in the contiguous United States (CONUS) that have observations available within a user-specified date range. The resulting metadata file is saved.
 
 **Usage:**  
 
@@ -29,8 +35,9 @@ CONUS_Metadata_Download.py <start_year> <start_month> <start_day> <end_year> <en
 CONUS_Metadata_Download.py 2020 1 1 2020 12 31 output_data
 ```
 
-### 2. CONUS_Observations_Download.py
-Downloads IDS-Lite station observations for all stations listed in a previously generated CONUS metadata file. Supports parallel downloads for faster retrieval.
+**2. CONUS_Observations_Download.py**
+
+Downloads IDS-Lite station observations for all stations listed in the previously generated CONUS metadata file. Supports parallel downloads for faster retrieval.
 
 **Usage:**  
 
@@ -44,8 +51,11 @@ CONUS_Observations_Download.py <start_year> <start_month> <start_day> <end_year>
 CONUS_Observations_Download.py 2020 1 1 2020 12 31 output_data -n 4
 ```
 
-### 3. Switzerland_Metadata_Download.py
-Downloads IDS-Lite station metadata and filters it to produce a list of stations located in Switzerland with available observations in a given date range. The filtered metadata is saved to a text file.
+### Switzerland
+
+**1. Switzerland_Metadata_Download.py**
+
+Downloads IDS-Lite station metadata and filters it to produce a list of stations located in Switzerland that have observations available within a user-specified date range. The resulting metadata file is saved.
 
 **Usage:**  
 
@@ -59,8 +69,9 @@ Switzerland_Metadata_Download.py <start_year> <start_month> <start_day> <end_yea
 Switzerland_Metadata_Download.py 2020 1 1 2020 12 31 output_data
 ```
 
-### 4. Switzerland_Observations_Download.py
-Downloads IDS-Lite station observations for all stations listed in a previously generated Switzerland metadata file. Supports optional parallel downloads.
+**2. Switzerland_Observations_Download.py**
+
+Downloads IDS-Lite station observations for all stations listed in the previously generated Switzerland metadata file. Supports parallel downloads for faster retrieval.
 
 **Usage:**  
 
