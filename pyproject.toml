@@ -8,9 +8,10 @@ license = { file = "LICENSE" }
 authors = [{ name = "Jan Kazil" }]
 
 dependencies = [
-  "numpy==2.3.3",
+  "numpy>=1.26,<2.2; python_version < '3.13'",
+  "numpy>=2.0; python_version >= '3.13'",
   "pandas==2.3.2",
-  "Requests==2.32.5",
+  "requests==2.32.5",
   "xarray==2025.8.0",
 ]
 
