@@ -17,44 +17,60 @@ Downloads IDS-Lite station metadata and filters it to produce a list of stations
 
 **Usage:**  
 
-```CONUS_Metadata_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir>```
+```bash
+CONUS_Metadata_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir>
+```
 
 **Example:**  
 
-```CONUS_Metadata_Download.py 2020 1 1 2020 12 31 output_data```
+```bash
+CONUS_Metadata_Download.py 2020 1 1 2020 12 31 output_data
+```
 
 ### 2. CONUS_Observations_Download.py
 Downloads IDS-Lite station observations for all stations listed in a previously generated CONUS metadata file. Supports parallel downloads for faster retrieval.
 
 **Usage:**  
 
-```CONUS_Observations_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir> [-n <n_parallel>]```
+```bash
+CONUS_Observations_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir> [-n <n_parallel>]
+```
 
 **Example:**  
 
-```CONUS_Observations_Download.py 2020 1 1 2020 12 31 output_data -n 4```
+```bash
+CONUS_Observations_Download.py 2020 1 1 2020 12 31 output_data -n 4
+```
 
 ### 3. Switzerland_Metadata_Download.py
 Downloads IDS-Lite station metadata and filters it to produce a list of stations located in Switzerland with available observations in a given date range. The filtered metadata is saved to a text file.
 
 **Usage:**  
 
-```Switzerland_Metadata_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir>```
+```bash
+Switzerland_Metadata_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir>
+```
 
 **Example:**  
 
-```Switzerland_Metadata_Download.py 2020 1 1 2020 12 31 output_data```
+```bash
+Switzerland_Metadata_Download.py 2020 1 1 2020 12 31 output_data
+```
 
 ### 4. Switzerland_Observations_Download.py
 Downloads IDS-Lite station observations for all stations listed in a previously generated Switzerland metadata file. Supports optional parallel downloads.
 
 **Usage:**  
 
-```Switzerland_Observations_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir> [-n <n_parallel>]```
+```bash
+Switzerland_Observations_Download.py <start_year> <start_month> <start_day> <end_year> <end_month> <end_day> <data_dir> [-n <n_parallel>]
+```
 
 **Example:**  
 
-```Switzerland_Observations_Download.py 2020 1 1 2020 12 31 output_data -n 4```
+```bash
+Switzerland_Observations_Download.py 2020 1 1 2020 12 31 output_data -n 4
+```
 
 ## Demo Scripts
 
