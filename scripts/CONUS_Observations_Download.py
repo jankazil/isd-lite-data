@@ -106,7 +106,7 @@ file_name = 'conus_stations.' + str(start_date.year) + '-' + str(end_date.year) 
 
 file_path = data_dir / file_name
 
-assert file_path.is_file(), f'File does not exist: {file_path}.'
+assert file_path.is_file(), 'Metadata file not available at : ' + str(file_path) + '. Use CONUS_Metadata_Download.py to download it.'
 
 conus_stations = stations.Stations.from_file(file_path)
 
