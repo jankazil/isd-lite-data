@@ -1,8 +1,19 @@
 # ISD-lite-data
 
-**ISD-lite-data** is a Python toolkit for accessing, downloading, and processing [ISDLite](https://www.ncei.noaa.gov/pub/data/noaa/isd-lite) data. ISDLite is a version of the Integrated Surface Database (ISD), provided online by NOAA's National Centers for Environmental Information (NCEI).
+**ISD-lite-data** is a Python toolkit for accessing, downloading, and processing [ISDLite](https://www.ncei.noaa.gov/pub/data/noaa/isd-lite) data. It provides modules for
 
-ISDLite is a product derived from [ISD](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database), which is easier to work with for general research and scientific purposes. It is a subset of the full ISD containing eight common surface parameters in a fixed-width format free of duplicate values, sub-hourly data, and complicated flags.
+- Downloading ISDLite station metadata and observation data files
+- Working with ISDLite data
+
+ISDLite is a version of the Integrated Surface Database (ISD), provided online by NOAA's National Centers for Environmental Information (NCEI).
+
+ISDLite is a product derived from [ISD](https://www.ncei.noaa.gov/products/land-based-station/integrated-surface-database). ISDLite is easier to work with for general data analysis purposes. It is a subset of the full ISD containing eight common surface parameters in a fixed-width format free of duplicate values, sub-hourly data, and complex flags.
+
+**Note**
+
+ISD reached end of life at end of life on 2025-08-29, and will receive no further updates. ISD is being replaced by the [Global Historical Climatology Network hourly (GHCNh)](https://www.ncei.noaa.gov/products/global-historical-climatology-network-hourly).
+
+Currently (2025-09-16), historical ISD-Lite data files are accessible for download with observations covering the time period ending 2025-08-25.
 
 ## Installation (Linux / macOS)
 
