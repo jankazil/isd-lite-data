@@ -295,7 +295,7 @@ class Stations:
 
         return meta_data
 
-    def save(self, title_line: str, file_path: Path) -> Self:
+    def save(self, title_line: str, file_path: Path):
         """
 
         Saves ISD station metadata to a file which has the same structure as the
@@ -513,7 +513,6 @@ Notes:
         Args:
             start_time (datetime): Start time of period for which files with observations must be available for download
             end_time (datetime): End time of period for which files with observations must be available for download
-            n_jobs (int): Maximum number of parallel URL requests
             verbose (bool): If True, print information. Defaults to False.
 
         Returns:
