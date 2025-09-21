@@ -143,13 +143,8 @@ def download_stations(local_file: Path):
 
     # Download file
 
-    with requests.get(isd_lite_stations_url, stream=True) as r:
-        r.raise_for_status()
-        with open(local_file, 'wb') as f:
-            for chunk in r.iter_content(chunk_size=8192):
-                if chunk:  # Filter out keep-alive new chunks
-                    f.write(chunk)
-
+    download_file(isd_lite_stations_url, local_file, verbose = True)
+    
     return
 
 
@@ -363,7 +358,7 @@ def download_file(url: str, local_file_path: Path, refresh: bool = False, verbos
                 raise
 
     if verbose:
-        print(url, 'downloaded.')
+        print('Downloaded', url, 'as', local_file_path)
 
     with open(etag_file_path, 'w') as f:
         f.write(etag)
