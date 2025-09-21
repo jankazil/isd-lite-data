@@ -36,7 +36,7 @@ Example:
 --------
     python Download_CONUS.py 2020 2020 ./data -n 4
 
-This will retrieve all available Swiss station data for the year 2020
+This will retrieve all available contiguous US (CONUS) station data for the year 2020
 and save both metadata and downloaded observations under `./data`.
 
 '''
@@ -55,7 +55,7 @@ def arg_parse(argv=None):
     '''
 
     code_description = (
-    'Download ISD-Lite weather observation data for Swiss stations from NOAA NCEI '
+    'Download ISD-Lite weather observation data for contiguous US (CONUS) stations from NOAA NCEI '
     'for a specified range of years. The script filters stations by country, '
     'coordinates, period of interest, and data availability, saves the resulting '
     'station list, and downloads the observations into the specified data directory.'
