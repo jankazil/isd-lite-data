@@ -199,7 +199,7 @@ class Stations:
         ISD Lite station observations from an xarray Dataset.
 
         Args:
-            ds (xr.dataset): xarray Dataset that has the same structure as
+            ds (xr.Dataset): xarray Dataset that has the same structure as
                              self.observations and which is properly populated.
         """
 
