@@ -41,7 +41,7 @@ where = ["src"]
 
 # Ensure non-Python assets ship inside the wheel/sdist
 [tool.setuptools.package-data]
-lcd_data = [
+isd_lite_data = [
     "data/EIA/*.geojson",
     "data/CensusBureau/US_states/*",
     "data/WorldBank/WB_countries_Admin0_10m/*",
