@@ -1,1 +1,1 @@
-recursive-include src/lcd_data/data *
+recursive-include src/isd_lite_data/data *
