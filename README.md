@@ -37,7 +37,7 @@ pip install git+https://github.com/jankazil/isd-lite-data
 
 The package provides a command‑line tool that selects stations by geography (a country, a U.S. state or territory, an RTO/ISO regions, the special region CONUS representing the contiguous United States, or single station by USAF/WBAN identifier), checks data availability, downloads ISD‑Lite observation files for a given year range, and writes a NetCDF file with full‑hourly UTC time series.
 
-Geospatial region selection is based on a U.S. Energy Information Administration GeoJSON of RTO/ISO footprints and U.S. Census Bureau state/territory boundaries included with the package.
+Geospatial region selection is based on The World Bank Official Boundaries, U.S. Energy Information Administration definitions of RTO/ISO footprints, and U.S. Census Bureau state/territory boundaries, included with the package.
 
 The USAF/WBAN station identifiers are available in the [ISD Lite stations list](https://www.ncei.noaa.gov/pub/data/noaa/isd-history.txt).
 
