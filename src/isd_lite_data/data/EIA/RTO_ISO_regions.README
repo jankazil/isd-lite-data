@@ -1,0 +1,22 @@
+This directory contains data from the U.S. Energy Information Administration (EIA).
+
+The isd-lite-data software package uses EIA data but is not endorsed or certified by EIA, and EIA data are not covered by the license of the isd-lite-data package.
+
+Dataset:
+
+  Regional Transmission Organization / Independent System Operators map
+  
+  RTO_ISO_regions.geojson
+
+Source:
+
+  https://atlas.eia.gov/datasets/rto-regions, accessed August 26, 2025
+
+These data are public domain products provided by the U.S. Energy Information
+Administration. There are no restrictions on their use or redistribution.
+
+For more information, see the EIA’s reuse policy:
+
+  https://www.eia.gov/about/copyrights_reuse.php
+
+Attribution: U.S. Energy Information Administration (September 2025)
