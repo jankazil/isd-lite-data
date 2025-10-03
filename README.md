@@ -113,9 +113,9 @@ Helpers to work with RTO/ISO region polygons.
 #### `isd_lite_data.region_codes`
 Provides
 
-  - `isd_lite_data.region_codes.countries`: Three-letter ISO 3166-1 alpha-3 country codes (e.g., `CHE`, `USA`)
-  - `isd_lite_data.region_codes.us_states_territories`: Two-letter U.S. state or territory codes (e.g., `CA`, `PR`)
-  - `isd_lite_data.region_codes.conus`: The special region `CONUS` code
+  - `isd_lite_data.region_codes.countries`: Three-letter ISO 3166-1 alpha-3 country codes
+  - `isd_lite_data.region_codes.us_states_territories`: Two-letter U.S. state or territory codes
+  - `isd_lite_data.region_codes.conus`: The special `CONUS` region code
   - `isd_lite_data.region_codes.rto_iso_regions`: RTO/ISO region codes
 
 #### `isd_lite_data.stations`
