@@ -1,19 +1,20 @@
-"""
-Classes to hold ISD Lite data and perform operations on them.
-"""
-
 import gzip
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
 from typing import Self
 
+import geopandas as gpd
+import matplotlib
 import numpy as np
 import pandas as pd
 import requests
 import xarray as xr
+from shapely.geometry import Point
 
 from isd_lite_data import ncei
+
+matplotlib.use("Agg")  # Important to avoid runaway memory use upon creating plots repeatedly.
 
 
 class Stations:
@@ -151,6 +152,9 @@ class Stations:
             Stations: An instance of Stations initialized with data from the file.
 
         """
+
+        if not file_path.exists():
+            raise FileNotFoundError(f"The file {file_path} does not exist.")
 
         meta_data = cls._read_fwf(file_path)
 
@@ -295,7 +299,7 @@ class Stations:
 
         return meta_data
 
-    def save(self, title_line: str, file_path: Path):
+    def save_station_list(self, title_line: str, file_path: Path):
         """
 
         Saves ISD station metadata to a file which has the same structure as the
@@ -389,71 +393,24 @@ Notes:
 
         return
 
-    def filter_by_country(self, countries: list[str]) -> Self:
-        """
-
-        Filters the station metadata by country.
-
-        Args:
-            countries (list[str]): A list of two-letter country codes of ISD stations
-
-        Returns:
-            Stations: An instance of Stations holding the ISD station metadata for the given list of countries.
-
-        """
-
-        # Filter by country
-
-        meta_data = self.meta_data[self.meta_data["CTRY"].isin(countries)]
-
-        # Reset row index
-
-        meta_data = meta_data.reset_index(drop=True)
-
-        return Stations(meta_data)
-
-    def filter_by_us_state(self, us_states: list[str]) -> Self:
-        """
-
-        Filters the station metadata by US state.
-
-        Args:
-            us_states (list[str]): A list of two-letter US state codes of ISD stations
-
-        Returns:
-            Stations: An instance of Stations holding the ISD station metadata for the given list of US states.
-
-        """
-
-        # Filter by country
-
-        meta_data = self.meta_data[self.meta_data["ST"].isin(us_states)]
-
-        # Reset row index
-
-        meta_data = meta_data.reset_index(drop=True)
-
-        return Stations(meta_data)
-
     def filter_by_coordinates(
         self, min_lat: float, max_lat: float, min_lon: float, max_lon: float
     ) -> Self:
-        """
+        '''
 
-        Filters the station metadata by latitude and longitude.
-
+        Spatial filter by inclusive latitude/longitude bounds.
 
         Args:
-            min_lat (float): Minimum latitude bounding the latitude and longitude box, [-90,90]
-            max_lat (float): Maximum latitude bounding the latitude and longitude box, [-90,90]
-            min_lon (float): Minimum longitude bounding the latitude and longitude box, [-180,180]
-            max_lon (float): Maximum longitude bounding the latitude and longitude box, [-180,180]
+            min_lat (float): Minimum latitude in degrees north.
+            max_lat (float): Maximum latitude in degrees north.
+            min_lon (float): Minimum longitude in degrees east.
+            max_lon (float): Maximum longitude in degrees east.
 
         Returns:
-            Stations: An instance of Stations holding the ISD station metadata for the stations
-                      within the given latitude/longitude box (inclusive).
+            Stations:
+                New instance containing only stations within the box.
 
-        """
+        '''
 
         # Filter by latitude and longitude
 
@@ -470,36 +427,53 @@ Notes:
 
         return Stations(meta_data)
 
-    def filter_by_period(self, start_time: datetime, end_time: datetime) -> Self:
-        """
+    def filter_by_region(self, region_gdf: gpd.GeoDataFrame) -> Self:
+        '''
 
-        Filters the station metadata by time period. Stations that have nominally observations
-        that cover the entire requested time period are kept, those that don't are filtered out.
-
+        Spatial filter by a GeoPandas geometry (WGS84).
 
         Args:
-            start_time (datetime): Start time of period for which observations are required
-            end_time (datetime): End time of period for which station observations are required
+            region_gdf (GeoPandas.GeoDataFrame):
+                One or more geometries that define the selection region.
+                Reprojected to EPSG:4326 if needed.
 
         Returns:
-            Stations: An instance of Stations holding the ISD station metadata for the stations
-                      whose data period fully covers, nominally, the period given by the start and end time.
+            Stations:
+                New instance containing only stations whose points lie within
+                the union of the region geometries.
 
-        """
+        '''
 
-        # Filter by time period
+        # Ensure the coordinate reference system (CRS) is WGS84 (latitude/longitude)
+        if region_gdf.crs != 'EPSG:4326':
+            region_gdf = region_gdf.to_crs('EPSG:4326')
 
-        meta_data = self.meta_data[
-            (self.meta_data['BEGIN'] <= start_time) & (self.meta_data['END'] >= end_time)
-        ]
+        # Create GeoDataFrame from self.meta_data with the WGS84 (latitude/longitude)
+        # coordinate reference system (CRS)
+        meta_data_gdf = gpd.GeoDataFrame(
+            self.meta_data,
+            geometry=[
+                Point(lon, lat)
+                for lon, lat in zip(self.meta_data['LON'], self.meta_data['LAT'], strict=False)
+            ],
+            crs='EPSG:4326',
+        )
+
+        # Combine geometries in region_gdf into a single multipolygon
+        area = region_gdf.unary_union
+
+        # Filter stations that fall within area
+        filtered_meta_data_gdf = meta_data_gdf[meta_data_gdf.geometry.within(area)]
+
+        # Construct a plain pandas DataFrame by dropping the geometry column
+        meta_data = pd.DataFrame(filtered_meta_data_gdf.drop(columns='geometry'))
 
         # Reset row index
-
         meta_data = meta_data.reset_index(drop=True)
 
         return Stations(meta_data)
 
-    def filter_by_data_availability(
+    def filter_by_data_availability_online(
         self, start_time: datetime, end_time: datetime, verbose: bool = False
     ) -> Self:
         """
@@ -524,7 +498,7 @@ Notes:
 
         # Get the URLs of all ISD Lite data files on the NCEI web server:
 
-        all_file_urls = ncei.isdlite_data_urls(start_time.year, end_time.year)
+        all_file_urls = ncei.isd_lite_data_urls(start_time.year, end_time.year)
 
         #
         # Construct a new dataframe
@@ -533,7 +507,7 @@ Notes:
         if verbose:
             print()
             print(
-                'Filtering out stations for which not all files with observations are available in the period of interest',
+                'Filtering out stations for which not all files with observations are available online in the time range',
                 str(start_time.year),
                 'to',
                 str(end_time.year),
@@ -542,13 +516,16 @@ Notes:
 
         filtered_rows = []
 
+        unavailable_urls = []
+
         for _, row in self.meta_data.iterrows():
             observations_files_available = True
 
             for year in range(start_time.year, end_time.year + 1):
-                url = ncei.isdlite_data_url(year, row['USAF'], row['WBAN'])
+                url = ncei.isd_lite_data_url(year, row['USAF'], row['WBAN'])
                 if url not in all_file_urls:
                     observations_files_available = False
+                    unavailable_urls.append(url)
 
             if observations_files_available:
                 filtered_rows.append(row)
@@ -563,6 +540,8 @@ Notes:
                         row['STATION_NAME'],
                         '(not all files with observations for the time range are available for download)',
                     )
+                    for url in unavailable_urls:
+                        print('Unavailable: ', url)
 
         # Construct a new DataFrame from the selected rows
         meta_data = pd.DataFrame(filtered_rows, columns=self.meta_data.columns)
@@ -573,7 +552,120 @@ Notes:
 
         return Stations(meta_data)
 
-    def id(self) -> list[list[str]]:
+    def filter_by_data_availability_offline(
+        self, data_dir: Path, start_time: datetime, end_time: datetime, verbose: bool = False
+    ) -> Self:
+        """
+
+        Filters the station metadata by whether files with observations are available in the given
+        data directory.
+
+        This can take a while, depending on the responsiveness of the NCEI server.
+
+        Args:
+            data_dir (Path): Directory containing the ISD Lite files named as on the NCEI ISD Lite server.
+            start_time (datetime): Start time of period for which files with observations must be available for download
+            end_time (datetime): End time of period for which files with observations must be available for download
+            verbose (bool): If True, print information. Defaults to False.
+
+        Returns:
+            Stations: An instance of Stations holding the ISD station metadata for the stations
+                      for which files with observations are available locally in the diven data directory.
+
+        """
+
+        #
+        # Construct a new dataframe
+        #
+
+        if verbose:
+            print()
+            print(
+                'Filtering out stations for which not all files with observations are available in the directory'
+                + str(data_dir)
+                + ' in the time range',
+                str(start_time.year),
+                'to',
+                str(end_time.year),
+                flush=True,
+            )
+            print()
+
+        filtered_rows = []
+
+        unavailable_files = []
+
+        for _, row in self.meta_data.iterrows():
+            observations_files_available = True
+
+            for year in range(start_time.year, end_time.year + 1):
+                file_path = data_dir / ncei.isd_lite_data_file_name(year, row['USAF'], row['WBAN'])
+                if not file_path.exists():
+                    observations_files_available = False
+                    unavailable_files.append(file_path)
+
+            if observations_files_available:
+                filtered_rows.append(row)
+                if verbose:
+                    print('Including station', row['USAF'], row['WBAN'], row['STATION_NAME'])
+            else:
+                if verbose:
+                    print(
+                        'Excluding station',
+                        row['USAF'],
+                        row['WBAN'],
+                        row['STATION_NAME'],
+                        '(not all files with observations in the requested time range are available locally)',
+                    )
+                    for file_path in unavailable_files:
+                        print('Unavailable: ', file_path)
+
+        # Construct a new DataFrame from the selected rows
+        meta_data = pd.DataFrame(filtered_rows, columns=self.meta_data.columns)
+
+        # Reset row index
+
+        meta_data = meta_data.reset_index(drop=True)
+
+        return Stations(meta_data)
+
+    def filter_by_id(self, usaf_id: str, wban_id: str) -> Self:
+        '''
+
+        Filter by station ID (USAF/WBAN station identifier)
+
+        Args:
+        usaf_id (str): USAF ID = Air Force station ID. May contain a letter in the first position.
+        wban_id (str): WBAN ID = NCDC WBAN number
+
+        Returns:
+            Stations:
+                New instance containing only stations with the given ID
+
+        '''
+
+        if [usaf_id, wban_id] not in self.ids():
+            raise ValueError(
+                usaf_id
+                + ' '
+                + wban_id
+                + ' are not available station USAF/WBAN station IDs. For a full list station IDs, see '
+                + ncei.isd_lite_stations_url
+            )
+
+        # Filter by station IDs
+
+        meta_data = self.meta_data[
+            (self.meta_data['USAF'] == usaf_id) & (self.meta_data['WBAN'] == wban_id)
+        ]
+
+        # Reset row index
+
+        meta_data = meta_data.reset_index(drop=True)
+
+        return Stations(meta_data)
+
+    def ids(self) -> list[list[str]]:
         """
 
         Returns a list of 2-element lists containing station USAF and WBAN IDs as strings.
@@ -587,96 +679,6 @@ Notes:
 
         # Selects all rows and the first two columns in the dataframe
         subset = self.meta_data.iloc[:, 0:2]
-
-        # Convert to nested list
-        result = subset.values.tolist()
-
-        return result
-
-    def countries(self) -> list[str]:
-        """
-        Returns a list of countries that are represented in the station metadata.
-        """
-
-        return sorted(list(self.meta_data['CTRY'].dropna().unique()))
-
-    def us_states(self) -> list[str]:
-        """
-        Returns a list of US states that are represented in the station metadata.
-        """
-
-        return sorted(list(self.meta_data['ST'].dropna().unique()))
-
-    def coordinates(self) -> list[list[str]]:
-        """
-
-        Returns a list of 2-element lists containing station latitude and longitude as floating point numbers.
-
-        Returns:
-            list[list[float]]: A list of 2-element lists. Each inner list contains:
-                               - First element: station latitude  (float)
-                               - Second element: station longitude (float)
-
-        """
-
-        # Selects all rows and the 6th and 7th columns in the dataframe
-        subset = self.meta_data.iloc[:, 6:8]
-
-        # Convert to nested list
-        result = subset.values.tolist()
-
-        return result
-
-    def name(self) -> list[str]:
-        """
-
-        Returns a list station names as strings.
-
-        Returns:
-            list[str]: A list of station names.
-
-        """
-
-        # Selects all rows and the 2nd column in the dataframe
-        subset = self.meta_data.iloc[:, 2]
-
-        # Convert to list
-        result = subset.values.tolist()
-
-        return result
-
-    def elevation(self) -> list[list[float]]:
-        """
-
-        Returns a list station elevations.
-
-        Returns:
-            list[float]: List of station elevation as floating point numbers (m).
-
-        """
-
-        # Selects all rows and the 8th column in the dataframe
-        subset = self.meta_data.iloc[:, 8]
-
-        # Convert to list
-        result = subset.values.tolist()
-
-        return result
-
-    def data_period(self) -> list[list[datetime]]:
-        """
-
-        Returns a list of 2-element lists containing the start and end dates of the period with data for each station.
-
-        Returns:
-            list[list[datetime]]: A list of 2-element lists. Each inner list contains:
-                                  - First element: station data period start date (datetime)
-                                  - Second element: station data period end date (datetime)
-
-        """
-
-        # Selects all rows and the 9th and 10th columns in the dataframe
-        subset = self.meta_data.iloc[:, 9:11]
 
         # Convert to nested list
         result = subset.values.tolist()
@@ -741,6 +743,8 @@ Notes:
             elevs.append(row.ELEV)
             begins.append(row.BEGIN)
             ends.append(row.END)
+
+        assert len(dfs) > 0, 'Not enough data. Aborting.'
 
         #
         # Create common times
@@ -893,6 +897,11 @@ Notes:
             self.observations.drop_vars(object_vars).to_netcdf(file_path, encoding=encoding)
         else:
             self.observations.to_netcdf(file_path, encoding=encoding)
+
+        print()
+        print('Saved the full-hourly UTC time series file', file_path)
+        print()
+
         return
 
     def read_station_observations(
@@ -930,7 +939,7 @@ Notes:
         dfs = []
 
         for year in range(start_year, end_year + 1):
-            file_path = data_dir / ncei.ISDLite_data_file_name(year, usaf_id, wban_id)
+            file_path = data_dir / ncei.isd_lite_data_file_name(year, usaf_id, wban_id)
 
             if not file_path.exists():
                 raise ValueError(str(file_path) + ' does not exist.')

@@ -1,9 +1,9 @@
 # Ignore Python bytecode cache directories and files
 __pycache__/
-data
 *.py[cod]
 *.pyo
 *.egg-info/
+data/
 dist/
 build/
 .coverage

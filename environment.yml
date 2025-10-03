@@ -1,0 +1,16 @@
+name: lcd_data
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.11
+  - pip
+  - geopandas
+  - matplotlib
+  - netcdf4
+  - numpy
+  - pandas
+  - requests
+  - shapely
+  - xarray
+  - pip:
+      - git+https://github.com/jankazil/isd-lite-data

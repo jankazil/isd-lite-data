@@ -1,18 +1,28 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "isd-lite-data"
-version = "2.1.8"
+version = "3.0.0"
 description = "A toolkit for accessing, downloading, and processing ISD Lite data"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 license = { file = "LICENSE" }
 authors = [{ name = "Jan Kazil" }]
-
 dependencies = [
-  "numpy>=2.0",
-  "pandas>=2.3.2",
-  "requests>=2.32.5",
-  "xarray>=2025.8.0",
+  "geopandas",
+  "matplotlib",
+  "numpy",
+  "netcdf4",
+  "pandas",
+  "requests",
+  "shapely",
+  "xarray",
 ]
+
+[project.scripts]
+build-isd-lite-dataset = "isd_lite_data.build_isd_lite_dataset:main" # Connects name of executable in $PATH to the python module containing main()
 
 [project.optional-dependencies]
 dev = [
@@ -24,14 +34,18 @@ dev = [
 ]
 
 [tool.setuptools]
-script-files = [
-  "scripts/Download_CONUS.py",
-  "scripts/Download_Switzerland.py",
-]
+package-dir = {"" = "src"}
 
-[build-system]
-requires = ["setuptools>=68", "wheel"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# Ensure non-Python assets ship inside the wheel/sdist
+[tool.setuptools.package-data]
+lcd_data = [
+    "data/EIA/*.geojson",
+    "data/CensusBureau/US_states/*",
+    "data/WorldBank/WB_countries_Admin0_10m/*",
+]
 
 [tool.ruff]
 line-length = 100
@@ -51,7 +65,7 @@ quote-style = "preserve"
 # do no reflect actual runtime issues.
 #
 #[tool.mypy]
-##python_version = "3.13"
+##python_version = "3.11"
 #warn_unused_configs = true
 #disallow_untyped_defs = true
 #disallow_incomplete_defs = true
@@ -64,5 +78,6 @@ quote-style = "preserve"
 #files = ["src/isd_lite_data"]
 
 [tool.pytest.ini_options]
-addopts = "-q --cov=isd_lite_data --cov-report=term-missing"
 testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]

@@ -17,7 +17,7 @@ isd_lite_url = 'https://www.ncei.noaa.gov/pub/data/noaa/isd-lite'
 isd_lite_stations_url = 'https://www.ncei.noaa.gov/pub/data/noaa/isd-history.txt'
 
 
-def isdlite_data_url(year: int, usaf_id: str, wban_id: str) -> str:
+def isd_lite_data_url(year: int, usaf_id: str, wban_id: str) -> str:
     """
     Constructs the URL of a NCEI ISD Lite station data file.
 
@@ -35,13 +35,13 @@ def isdlite_data_url(year: int, usaf_id: str, wban_id: str) -> str:
         + '/'
         + str(year)
         + '/'
-        + ISDLite_data_file_name(year, usaf_id, wban_id)
+        + isd_lite_data_file_name(year, usaf_id, wban_id)
     )
 
     return url
 
 
-def isdlite_data_urls(start_year: int, end_year: int, timeout: float = 20.0) -> list[str]:
+def isd_lite_data_urls(start_year: int, end_year: int, timeout: float = 20.0) -> list[str]:
     """
     Collects all file URLs from the NOAA ISD-Lite directory for the inclusive
     range of years [start_year, end_year].
@@ -111,7 +111,7 @@ def isdlite_data_urls(start_year: int, end_year: int, timeout: float = 20.0) -> 
     return sorted(file_urls)
 
 
-def ISDLite_data_file_name(year: int, usaf_id: str, wban_id: str) -> str:
+def isd_lite_data_file_name(year: int, usaf_id: str, wban_id: str) -> str:
     """
     Constructs the name of a NCEI ISD Lite data file.
 
@@ -129,6 +129,45 @@ def ISDLite_data_file_name(year: int, usaf_id: str, wban_id: str) -> str:
     return file_name
 
 
+def isd_lite_data_file_paths(
+    start_year: int,
+    end_year: int,
+    ids: list[list[str]],
+    local_dir: Path,
+) -> list[Path]:
+    """
+    For a given year range (inclusive) and given station IDs (GHCNh station identifiers),
+    and a local directory path, returns the paths to LCD data files in that directory path.
+
+    Args:
+        start_year (int): Gregorian year of the first data file to be downloaded
+        end_year (int): Gregorian year of the last data file to be downloaded
+        ids (list[list[str]]): A list of 2-element lists. Each inner list contains:
+                               - First element : USAF = Air Force station ID. May contain a letter in the first position.  (str)
+                               - Second element: WBAN = NCDC WBAN number (str)
+        local_dir (Path): Local directory where the downloaded files will be saved.
+
+    Returns:
+        list[Path]: List of local paths of the downloaded files.
+    """
+
+    # Construct local file paths
+
+    all_local_file_paths = []
+
+    for year in range(start_year, end_year + 1):
+        local_file_paths = []
+
+        for id in ids:
+            usaf_id = id[0]
+            wban_id = id[1]
+            local_file_paths.append(local_dir / isd_lite_data_file_name(year, usaf_id, wban_id))
+
+        all_local_file_paths = all_local_file_paths + local_file_paths
+
+    return all_local_file_paths
+
+
 def download_stations(local_file: Path):
     """
     Downloads the Integrated Surface Database (ISD) Station History (station meta data) file
@@ -143,8 +182,8 @@ def download_stations(local_file: Path):
 
     # Download file
 
-    download_file(isd_lite_stations_url, local_file, verbose = True)
-    
+    download_file(isd_lite_stations_url, local_file, verbose=True)
+
     return
 
 
@@ -173,11 +212,11 @@ def download_one(
 
     # Construct data URL and get ETag
 
-    url = isdlite_data_url(year, usaf_id, wban_id)
+    url = isd_lite_data_url(year, usaf_id, wban_id)
 
     # Construct local file path
 
-    local_file_path = local_dir / ISDLite_data_file_name(year, usaf_id, wban_id)
+    local_file_path = local_dir / isd_lite_data_file_name(year, usaf_id, wban_id)
 
     # Download file
 
@@ -207,9 +246,9 @@ def download_many(
     Args:
         start_year (int): Gregorian year of the first data file to be downloaded
         end_year (int): Gregorian year of the last data file to be downloaded
-        list[list[str]]: A list of 2-element lists. Each inner list contains:
-                         - First element : USAF = Air Force station ID. May contain a letter in the first position.  (str)
-                         - Second element: WBAN = NCDC WBAN number (str)
+        ids (list[list[str]]): A list of 2-element lists. Each inner list contains:
+                               - First element : USAF = Air Force station ID. May contain a letter in the first position.  (str)
+                               - Second element: WBAN = NCDC WBAN number (str)
         local_dir (Path): Local directory where the downloaded files will be saved.
         refresh (bool, optional): If True, download even if the file already exists. Defaults to False.
         verbose (bool): If True, print information. Defaults to False.
@@ -231,9 +270,9 @@ def download_many(
             usaf_id = id[0]
             wban_id = id[1]
 
-            urls.append(isdlite_data_url(year, usaf_id, wban_id))
+            urls.append(isd_lite_data_url(year, usaf_id, wban_id))
 
-            local_file_paths.append(local_dir / ISDLite_data_file_name(year, usaf_id, wban_id))
+            local_file_paths.append(local_dir / isd_lite_data_file_name(year, usaf_id, wban_id))
 
         download_threaded(urls, local_file_paths, n_jobs=n_jobs, refresh=refresh, verbose=verbose)
 
