@@ -204,7 +204,10 @@ def main(argv=None):
     # Identify stations in the selected country, US state, territory, region, or handle an individual station
     #
 
-    if region_code in region_codes.countries:
+    if len(region_code) == 3:
+        assert region_code in region_codes.countries, (
+            'Country code ' + region_code + ' is not available.'
+        )
         working_on_region = True
         # Load countries shapefile directory from installed distribution using importlib.resources
         world_dir_res = files('isd_lite_data') / 'data' / 'WorldBank' / 'WB_countries_Admin0_10m'
@@ -213,15 +216,11 @@ def main(argv=None):
             countries_gdf = gpd.read_file(world_shp_file)
         region_gdf = countries_gdf[countries_gdf['ISO_A3'].isin([region_code])]
         region_name = region_gdf['NAME_EN'].values[0]
-    elif region_code in region_codes.rto_iso_regions:
-        working_on_region = True
-        # Load RTO/ISO region GeoJSON from installed distribution using importlib.resources
-        rto_iso_geojson_res = files('isd_lite_data') / 'data' / 'EIA' / 'RTO_ISO_regions.geojson'
-        with as_file(rto_iso_geojson_res) as rto_iso_geojson_path:
-            region_gdf = rto_iso.region(rto_iso_geojson_path, region_code)
-        region_name = region_code
 
-    elif region_code in region_codes.us_states_territories:
+    elif len(region_code) == 2:
+        assert region_code in region_codes.us_states_territories, (
+            'US state/territory code ' + region_code + ' is not available.'
+        )
         working_on_region = True
         # Load US states shapefile directory from installed distribution using importlib.resources
         us_states_dir_res = files('isd_lite_data') / 'data' / 'CensusBureau' / 'US_states'
@@ -229,6 +228,14 @@ def main(argv=None):
             us_states_shp_file = us_states_dir_path / 'tl_2024_us_state.shp'
             us_gdf = gpd.read_file(us_states_shp_file)
         region_gdf = us_gdf[us_gdf['STUSPS'].isin([region_code])]
+        region_name = region_code
+
+    elif region_code in region_codes.rto_iso_regions:
+        working_on_region = True
+        # Load RTO/ISO region GeoJSON from installed distribution using importlib.resources
+        rto_iso_geojson_res = files('isd_lite_data') / 'data' / 'EIA' / 'RTO_ISO_regions.geojson'
+        with as_file(rto_iso_geojson_res) as rto_iso_geojson_path:
+            region_gdf = rto_iso.region(rto_iso_geojson_path, region_code)
         region_name = region_code
 
     elif region_code == region_codes.conus:
@@ -241,6 +248,7 @@ def main(argv=None):
         exclude_codes = ['AK', 'HI', 'PR', 'GU', 'VI', 'AS', 'MP']
         region_gdf = us_gdf[~us_gdf['STUSPS'].isin(exclude_codes)]
         region_name = region_code
+
     else:
         working_on_region = False
         usaf_id, wban_id = region_code.split(' ')

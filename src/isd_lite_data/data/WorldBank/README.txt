@@ -15,6 +15,8 @@ World Bank Official Boundaries – World Country Polygons (Admin 0, Very High De
   WB_countries_Admin0_10m/WB_countries_Admin0_10m.shp.xml
   WB_countries_Admin0_10m/WB_countries_Admin0_10m.shx
 
+These files were modified to contain the correct ISO A3 country codes for France (FRA) and Norway (NOR).
+
 Source:
 
   https://datacatalog.worldbank.org/infrastructure-data/search/dataset/0038272/World-Bank-Official-Administrative-Boundaries, accessed October 3, 2025
