@@ -747,6 +747,26 @@ Notes:
         assert len(dfs) > 0, 'Not enough data. Aborting.'
 
         #
+        # Make sure that lists that are meant to contain strings indeed do -
+        # as they may contain NaNs which are Pandas objects, not empty strings
+        #
+
+        def to_str_list(values):
+            # Convert everything to a string, replace missing values with ""
+            return [
+                "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v) for v in values
+            ]
+
+        # These are the string-like fields in the metadata
+        usaf_ids = to_str_list(usaf_ids)
+        wban_ids = to_str_list(wban_ids)
+        station_ids = to_str_list(station_ids)
+        station_names = to_str_list(station_names)
+        calls = to_str_list(calls)
+        ctrys = to_str_list(ctrys)
+        ussts = to_str_list(ussts)
+
+        #
         # Create common times
         #
 
