@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "isd-lite-data"
-version = "3.0.7"
+version = "3.0.8"
 description = "A toolkit for accessing, downloading, and processing ISD Lite data"
 readme = "README.md"
 requires-python = ">=3.11"

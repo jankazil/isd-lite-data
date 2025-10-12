@@ -30,7 +30,7 @@ It provides:
 ## Installation (Linux / macOS)
 
 ```bash
-mamba install -c jan.kazil -c conda-forge isd-lite-data-data
+mamba install -c jan.kazil -c conda-forge isd-lite-data
 ```
 
 ## Overview
