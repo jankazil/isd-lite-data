@@ -30,7 +30,7 @@ It provides:
 ## Installation (Linux / macOS)
 
 ```bash
-pip install git+https://github.com/jankazil/isd-lite-data
+mamba install -c jan.kazil -c conda-forge isd-lite-data-data
 ```
 
 ## Overview
