@@ -204,7 +204,7 @@ def main(argv=None):
     # Identify stations in the selected country, US state, territory, region, or handle an individual station
     #
 
-    if len(region_code) == 3:
+    if len(region_code) == 3 and region_code not in region_codes.rto_iso_regions:
         assert region_code in region_codes.countries, (
             'Country code ' + region_code + ' is not available.'
         )
