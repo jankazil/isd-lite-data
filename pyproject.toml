@@ -1,14 +1,15 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "isd-lite-data"
-version = "3.0.12"
+version = "3.0.13"
 description = "A toolkit for accessing, downloading, and processing ISD Lite data"
 readme = "README.md"
 requires-python = ">=3.11,<=3.12.9"
-license = { file = "LICENSE" }
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
 authors = [{ name = "Jan Kazil" }]
 dependencies = [
   "geopandas",
