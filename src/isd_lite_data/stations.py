@@ -861,8 +861,8 @@ Notes:
         #
 
         ds.attrs['name'] = 'ISD-Lite'
-        ds.attrs['long_name'] = 'Integrated Surface Dataset Lite observations'
-        ds.attrs['description'] = 'Integrated Surface Dataset Lite (ISD-Lite) observations'
+        ds.attrs['long_name'] = 'Integrated Surface Dataset Lite'
+        ds.attrs['description'] = 'Integrated Surface Dataset Lite (ISD-Lite)'
         ds.attrs['region'] = 'unspecified'
         ds.attrs['source'] = 'National Centers for Environmental Information (NCEI)'
         ds.attrs['URL'] = ncei.isd_lite_url
