@@ -1,14 +1,19 @@
-name: lcd_data
+name: isd-lite-data
 channels:
   - conda-forge
 dependencies:
-  - python>=3.11
-  - pip
-  - pipreqs
-  - pre-commit
-  - ruff
-  - mypy
+  # Python version range aligned with pyproject.toml.
+  - python>=3.11,<=3.12.9
+
+  # Environment/package-management tools.
   - mamba
+  - pip
+
+  # Build-system requirements from pyproject.toml.
+  - setuptools>=77
+  - wheel
+
+  # Runtime dependencies from pyproject.toml.
   - geopandas
   - matplotlib
   - netcdf4
@@ -17,9 +22,16 @@ dependencies:
   - requests
   - shapely
   - xarray
+
+  # Development tooling from pyproject.toml [project.optional-dependencies].dev.
+  - pytest
+  - pytest-cov
+  - mypy
+  - ruff
+  - pre-commit
+
+  # Jupyter kernel support for the local development environment.
   - jupyter_client
   - jupyter_core
   - notebook
   - ipykernel
-  - pip:
-      - git+https://github.com/jankazil/isd-lite-data
