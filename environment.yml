@@ -26,7 +26,6 @@ dependencies:
   # Development tooling from pyproject.toml [project.optional-dependencies].dev.
   - pytest
   - pytest-cov
-  - mypy
   - ruff
   - pre-commit
 
