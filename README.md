@@ -5,13 +5,13 @@
 It provides:
 
 - A top level command-line tool that
-    
+
   - automates the download of ISD‑Lite station observations for
     - countries
     - U.S. states and territories
     - Regional Transmission Organization (RTO) / Independent System Operator (ISO) regions
     - individual stations
-    
+
   - saves the full-hourly UTC time series of
     - sea level pressure
     - temperature at 2 m
@@ -22,9 +22,9 @@ It provides:
     - 1 h accumulated precipitation
     - 6 h accumulated precipitation
     - sky condition
-  
+
     for the stations in the selected country/state/territory/region, or for the selected station, for a user-specified time range, as a netCDF file.
-  
+
 - Modules for processing ISD‑Lite station observations.
 
 ## Installation (Linux / macOS)
@@ -130,6 +130,10 @@ Station catalog handling, filtering, reading, and writing.
 
 ## Development
 
+### Code Development Commands
+
+- `make setup-dev-env` - Creates an editable conda development environment with all required dependencies.
+
 ### Code Quality and Testing Commands
 
 - `make fmt` - Runs ruff format, which automatically reformats Python files according to the style rules in `pyproject.toml`
@@ -145,6 +149,11 @@ Station catalog handling, filtering, reading, and writing.
 - Files already present locally are skipped when their stored ETag matches the ETag online, unless `refresh=True` is used.
 - Loading and aggregating large numbers of per‑station files can be slow.
 - The ISD‑Lite station list sometimes contains ambiguous country codes; consider geographic filtering for disambiguation.
+
+### Code Publishing Commands
+
+- `make upload-pypi` - Uploads the package to pypi.org (credentials required)
+- `make upload-anaconda` - Uploads the package to anaconda.org (credentials required)
 
 ## Disclaimer
 
