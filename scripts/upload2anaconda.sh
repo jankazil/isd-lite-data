@@ -39,7 +39,7 @@ cleanup() {
         eval "$(conda shell.bash hook)" >/dev/null 2>&1 || true
 
         if conda env list | awk '{print $1}' | grep -Fxq "$BUILD_ENV_NAME"; then
-            conda run -n "$BUILD_ENV_NAME" conda build purge >/dev/null 2>&1 || true
+            conda run -n "$BUILD_ENV_NAME" conda-build purge >/dev/null 2>&1 || true
         fi
 
         while [[ "${CONDA_SHLVL:-0}" -gt 0 ]]; do
@@ -290,10 +290,8 @@ else
     conda create -y -n "$BUILD_ENV_NAME" -c conda-forge conda-build anaconda-client
 fi
 
-conda activate "$BUILD_ENV_NAME"
-
-ARTIFACT="$(conda build -c conda-forge --python "$PYTHON_VERSION" "$RECIPE_DIR" --output)"
-conda build -c conda-forge --python "$PYTHON_VERSION" "$RECIPE_DIR"
+ARTIFACT="$(conda run -n "$BUILD_ENV_NAME" conda-build -c conda-forge --python "$PYTHON_VERSION" "$RECIPE_DIR" --output)"
+conda run -n "$BUILD_ENV_NAME" conda-build -c conda-forge --python "$PYTHON_VERSION" "$RECIPE_DIR"
 
 if [[ ! -f "$ARTIFACT" ]]; then
     echo "Error: expected artifact not found: $ARTIFACT" >&2
@@ -303,10 +301,25 @@ fi
 echo "Selected artifact:"
 echo "  $ARTIFACT"
 
-echo "Logging in to anaconda.org"
-anaconda login
+echo "Using anaconda-client executable:"
+conda run -n "$BUILD_ENV_NAME" which anaconda
 
-anaconda upload --user "$ANACONDA_USER_NAME" "$ARTIFACT"
+if [[ -z "${ANACONDA_API_TOKEN:-}" ]]; then
+    echo "Error: ANACONDA_API_TOKEN is not set." >&2
+    echo "Create an Anaconda.org API token and run:" >&2
+    echo "  export ANACONDA_API_TOKEN='<token>'" >&2
+    exit 1
+fi
+
+echo "Using anaconda-client executable:"
+conda run -n "$BUILD_ENV_NAME" which anaconda
+
+echo "Uploading to anaconda.org"
+conda run -n "$BUILD_ENV_NAME" anaconda \
+    --token "$ANACONDA_API_TOKEN" \
+    upload \
+    --user "$ANACONDA_USER_NAME" \
+    "$ARTIFACT"
 
 echo
 echo "Upload complete. Temporary build environment and conda-build intermediates will now be removed."
