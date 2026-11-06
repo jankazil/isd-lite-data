@@ -2,28 +2,22 @@
 
 ## Project Scope and Isolation
 
-**The project root is `.`, the directory containing this `AGENTS.md`. This
-directory is the exclusive project boundary, wherever the repository is moved.**
-These instructions apply throughout the repository.
+**The project root is the directory containing this `AGENTS.md` (`.` relative to this file). These instructions apply throughout that repository, including after it is moved.**
 
-- Read, search, analyze, and modify project files only within this root.
-- Do not inspect sibling projects, parent directories, global configuration, or
-  other locations outside the repository. Do not infer architecture, requirements,
-  or conventions from unrelated projects or previous development sessions.
-- Do not follow symbolic links, submodules, worktree metadata, Git object
-  alternates, or other external Git references beyond the root. Check paths
-  before following them; avoid tools that automatically traverse external links.
-- Base project-specific conclusions on verified repository contents. Treat URLs
-  as documented interfaces, not permission to inspect remote repositories or
-  fetch external documentation.
-- If an operation needs information or files outside the root, report that
-  dependency rather than accessing it. Keep fixtures, downloads, and generated
-  outputs within the root, and do not overwrite bundled reference data.
-- The setup and release workflows below describe existing scripts; they do not
-  override this boundary. Report their external environment, kernel, temporary
-  directory, credential, and service dependencies before attempting those steps.
+- Treat the repository root as the exclusive project boundary. Read, search, analyze, and modify project files only inside it. Run commands from the root unless an in-repository script requires another directory within the root.
+- Do not inspect parent directories, sibling projects, unrelated workspaces, global configuration, installed dependency source, or other external locations for project context. Do not import assumptions from other projects or previous sessions.
+- Check path containment before following symbolic links, Git worktree/submodule references, object alternates, configuration includes, or paths that may escape through `..`. Do not follow references outside the root.
+- External URLs, paths, and credentials mentioned in repository files describe interfaces or dependencies; they do not authorize accessing resources outside the root. Report any required outside-root access instead of performing it.
+- Keep development inputs, generated outputs, caches, fixtures, and temporary project files inside the root. Inspect scripts for filesystem, environment, network, or deployment effects before running them. Do not run workflows that cross the project boundary under these instructions.
 
-## Purpose and Repository Map
+## General Agent Instructions
+
+- Base project-specific decisions on verified repository contents. Read the files relevant to the task; distinguish implementation facts, documentation claims, test results, and unverified assumptions.
+- Before editing, inspect the relevant code and working-tree state. Make focused changes, preserve unrelated work, and retain established interfaces and data contracts unless the task requires otherwise.
+- Use relevant checks that are safe in the available environment. Do not confuse a passing placeholder test, build, or lint check with end-to-end or scientific correctness. Report the checks actually run, failures, and verification gaps.
+- Do not expose credentials, or perform publishing, deployment, destructive environment setup, or other unrelated side effects as routine development or validation.
+
+## Project Overview and Repository Map
 
 This Python package downloads NOAA/NCEI Integrated Surface Dataset Lite
 (ISD-Lite) station observations, selects stations geographically or by identifier,
@@ -43,7 +37,7 @@ and writes station metadata and UTC time-series NetCDF datasets. See
 | `pyproject.toml`, `environment.yml` | Packaging, dependencies, Python compatibility, and tool settings. |
 | `Makefile`, `scripts/`, `.github/workflows/ci.yml` | Development commands, environment setup, conda publishing, and CI. |
 
-## Data Flow and Behavioral Contracts
+## Architecture and Data Contracts
 
 1. The CLI resolves a country, U.S. state/territory, CONUS, RTO/ISO code, or quoted
    `"USAF WBAN"` pair. Geometry resources are loaded via `importlib.resources`;
@@ -72,13 +66,15 @@ The writer encodes time as float64 epoch seconds with a proleptic Gregorian
 calendar, floating data variables as float32, and drops object-valued data
 variables, including the auxiliary `UTC` variable.
 
-## Environment and Commands
+## Environment and Setup
 
 [pyproject.toml](pyproject.toml) declares Python `>=3.11,<=3.12.9`, setuptools
 `>=77`, and wheel. Runtime dependencies are GeoPandas, Matplotlib, NumPy,
 netCDF4, pandas, requests, Shapely, and xarray. Development dependencies include
 pytest, pytest-cov, Ruff, and pre-commit. See [environment.yml](environment.yml)
 for the conda-forge environment and additional Jupyter tools.
+
+## Development Commands and Validation
 
 Run commands from the root in an already provisioned compatible environment.
 These are repository-defined workflows; dependency availability and successful
@@ -103,7 +99,7 @@ build target is defined in the Makefile. The README mentions `make type` and
 `make upload-pypi`, but neither target exists; mypy configuration is commented
 out. Do not assume those commands work.
 
-## Implementation Conventions
+## Coding Conventions
 
 - Follow [.editorconfig](.editorconfig): UTF-8, LF, final newline, four-space
   indentation; YAML/JSON/TOML use two spaces.
@@ -139,7 +135,27 @@ The publishing script requires `ANACONDA_API_TOKEN` and supports
 for defaults and behavior; do not inspect external credential stores or run
 publishing as routine validation.
 
-## Known Gaps and Manual Verification
+## Change and Review Workflow
+
+- Read the relevant implementation and repository documentation first. Keep
+  changes focused and preserve unrelated working-tree edits.
+- For functional changes, add focused pytest coverage under `tests/` for the
+  affected behavior. Use small synthetic inputs and mocked HTTP responses; keep
+  validation independent of live NOAA availability.
+- Validate with CI's Ruff and pytest commands when the environment is available
+  and execution fits the boundary. For parsing, geometry, or serialization
+  changes, verify identifiers, units, missing values, coordinates, and relevant
+  round trips. Report unavailable dependencies and checks not performed.
+- Review the diff for output/API compatibility, resource packaging, accidental
+  generated data, and documentation drift. Update README examples when behavior
+  changes. Report what changed, checks performed, and unresolved limitations.
+- **Maintain `AGENTS.md`:** When making changes that affect the project's
+  architecture, interfaces, dependencies, workflows, conventions, or documented
+  constraints, update the relevant sections of `AGENTS.md` in the same change.
+  Keep revisions focused and based on verified repository contents. Do not
+  modify `AGENTS.md` for changes that do not affect its accuracy or usefulness.
+
+## Known Limitations and Verification Gaps
 
 - The current test suite verifies only `add(2, 2) == 4`; a passing suite does not
   validate downloading, geography, parsing, CLI behavior, or NetCDF round trips.
@@ -159,18 +175,3 @@ publishing as routine validation.
   Python 3.11; compatibility across the full declared Python range, geospatial
   dependency versions, external endpoint behavior, and release execution require
   separate verification within the isolation policy.
-
-## Making and Reviewing Changes
-
-- Read the relevant implementation and repository documentation first. Keep
-  changes focused and preserve unrelated working-tree edits.
-- For functional changes, add focused pytest coverage under `tests/` for the
-  affected behavior. Use small synthetic inputs and mocked HTTP responses; keep
-  validation independent of live NOAA availability.
-- Validate with CI's Ruff and pytest commands when the environment is available
-  and execution fits the boundary. For parsing, geometry, or serialization
-  changes, verify identifiers, units, missing values, coordinates, and relevant
-  round trips. Report unavailable dependencies and checks not performed.
-- Review the diff for output/API compatibility, resource packaging, accidental
-  generated data, and documentation drift. Update README examples when behavior
-  changes. Report what changed, checks performed, and unresolved limitations.
