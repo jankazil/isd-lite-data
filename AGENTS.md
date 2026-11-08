@@ -99,6 +99,8 @@ build target is defined in the Makefile. The README mentions `make type` and
 `make upload-pypi`, but neither target exists; mypy configuration is commented
 out. Do not assume those commands work.
 
+The CI test suite is intentionally limited to `tests/test_test.py`, which asserts `hrrr_ml.test.add(2, 2) == 4`. Do not add further CI tests unless explicitly requested by the user. Passing this placeholder does not establish numerical, model, netCDF, or operational correctness. For behavioral changes, use relevant safe checks with small in-repository inputs and report what was actually verified. Avoid live network calls and expensive retraining as default validation. Keep temporary verification files inside the repository and report validation limits explicitly.
+
 ## Coding Conventions
 
 - Follow [.editorconfig](.editorconfig): UTF-8, LF, final newline, four-space
