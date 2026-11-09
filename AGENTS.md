@@ -2,178 +2,95 @@
 
 ## Project Scope and Isolation
 
-**The project root is the directory containing this `AGENTS.md` (`.` relative to this file). These instructions apply throughout that repository, including after it is moved.**
+**The project root is the directory containing this `AGENTS.md` (`.` relative to this file). These instructions apply throughout the repository and remain valid if it is moved.**
 
-- Treat the repository root as the exclusive project boundary. Read, search, analyze, and modify project files only inside it. Run commands from the root unless an in-repository script requires another directory within the root.
-- Do not inspect parent directories, sibling projects, unrelated workspaces, global configuration, installed dependency source, or other external locations for project context. Do not import assumptions from other projects or previous sessions.
-- Check path containment before following symbolic links, Git worktree/submodule references, object alternates, configuration includes, or paths that may escape through `..`. Do not follow references outside the root.
-- External URLs, paths, and credentials mentioned in repository files describe interfaces or dependencies; they do not authorize accessing resources outside the root. Report any required outside-root access instead of performing it.
-- Keep development inputs, generated outputs, caches, fixtures, and temporary project files inside the root. Inspect scripts for filesystem, environment, network, or deployment effects before running them. Do not run workflows that cross the project boundary under these instructions.
+- Treat the project root as the exclusive boundary for project information and file changes. Read, search, analyze, and modify project files only within it. Run project commands from the root unless a repository script requires a different directory within the root.
+- Do not inspect parent directories, sibling projects, unrelated workspaces, external source trees, installed dependency source, or global configuration to obtain project context. Do not carry over assumptions from other projects or previous sessions.
+- Check that paths remain within the root before following symbolic links, Git worktree or submodule references, configuration includes, or paths containing `..`. Do not follow references outside the root.
+- Treat external paths and URLs found in project files as descriptions of dependencies, not authorization to access them. Report required outside-root information or operations instead of accessing them without explicit authorization.
+- Keep generated project files, caches, fixtures, and temporary outputs within the root. Inspect commands and scripts for external filesystem, environment, network, or deployment effects before running them. Do not run commands that violate the project boundary.
 
 ## General Agent Instructions
 
-- Base project-specific decisions on verified repository contents. Read the files relevant to the task; distinguish implementation facts, documentation claims, test results, and unverified assumptions.
-- Before editing, inspect the relevant code and working-tree state. Make focused changes, preserve unrelated work, and retain established interfaces and data contracts unless the task requires otherwise.
-- Use relevant checks that are safe in the available environment. Do not confuse a passing placeholder test, build, or lint check with end-to-end or scientific correctness. Report the checks actually run, failures, and verification gaps.
-- Do not expose credentials, or perform publishing, deployment, destructive environment setup, or other unrelated side effects as routine development or validation.
+- Base project-specific decisions on verified repository contents and the current task. Distinguish source-code behavior, documentation claims, test results, and unverified assumptions. Do not invent architecture, commands, dependencies, or requirements.
+- Before editing, inspect relevant files and the existing working-tree changes, when available. Make focused changes, preserve unrelated work, and maintain established interfaces and contracts unless the task requests otherwise.
+- Prefer existing repository patterns and tools. Do not introduce dependencies, abstractions, or configuration solely for consistency with another project.
+- Use relevant validation that is safe in the available environment. Report what was actually checked, what failed, and what remains unverified; do not equate a successful lint, build, or placeholder test with functional correctness.
+- Do not expose credentials or perform destructive operations, publishing, deployment, environment replacement, or unrelated changes without explicit authorization.
 
-## Project Overview and Repository Map
+## Specification-driven workflow
 
-This Python package downloads NOAA/NCEI Integrated Surface Dataset Lite
-(ISD-Lite) station observations, selects stations geographically or by identifier,
-and writes station metadata and UTC time-series NetCDF datasets. See
-[README.md](README.md) for the public API, CLI arguments, and examples.
-
-| Path | Responsibility |
-| --- | --- |
-| `src/isd_lite_data/build_isd_lite_dataset.py` | Argument parsing, packaged geometry loading, and CLI orchestration. |
-| `src/isd_lite_data/ncei.py` | NOAA URLs, filenames, directory listings, threaded downloads, retries, and ETag sidecars. |
-| `src/isd_lite_data/stations.py` | `Stations` metadata container, filtering, gzip parsing, xarray assembly, and NetCDF reading/writing. |
-| `src/isd_lite_data/region_codes.py` | Country, U.S. state/territory, CONUS, and RTO/ISO selectors. |
-| `src/isd_lite_data/rto_iso.py` | EIA polygon selection and merging into seven RTO/ISO regions. |
-| `src/isd_lite_data/data/` | Bundled EIA GeoJSON and Census Bureau/World Bank shapefiles with provenance documents. |
-| `src/isd_lite_data/__init__.py` | Distribution version lookup, with a local fallback. |
-| `tests/test_test.py`, `src/isd_lite_data/test.py` | One placeholder test of an integer addition helper. |
-| `pyproject.toml`, `environment.yml` | Packaging, dependencies, Python compatibility, and tool settings. |
-| `Makefile`, `scripts/`, `.github/workflows/ci.yml` | Development commands, environment setup, conda publishing, and CI. |
+- Read the system specification `docs/specs/SYSTEM_SPEC.md`, if present, and the specification provided by the user for the current development step before proceeding.
+- If the user requests specification-driven development without providing a development-step specification, propose creating one before implementation.
+- Treat the system specification as accepted intended behavior and the development step specification as the current proposed change.
+- Review the proposed specification for ambiguities, omissions, untestable acceptance criteria, and contradictions with existing system requirements, interfaces, and constraints.
+- Resolve material ambiguities and omissions with the user. Do not begin implementation until the user approves.
+- Keep the development step specification aligned with approved requirements.
+- When feedback changes requirements, revise the development step specification before changing the implementation. Request approval for ambiguous or consequential changes.
+- Distinguish defects in implementation from changes in requirements.
+- Update code and automated tests, as appropriate, then report which acceptance criteria are satisfied, unverified, or blocked.
+- Do not declare user acceptance. The user decides when the development step is accepted after evaluating the result.
+- After acceptance, update docs/specs/SYSTEM_SPEC.md, if present, to reflect the accepted changes and remove superseded requirements.
+- Do not create version-numbered copies of specification files. Use Git for meaningful snapshots.
+- Do not create Git commits, merge branches, or delete branches unless explicitly requested.
 
 ## Architecture and Data Contracts
 
-1. The CLI resolves a country, U.S. state/territory, CONUS, RTO/ISO code, or quoted
-   `"USAF WBAN"` pair. Geometry resources are loaded via `importlib.resources`;
-   individual station selection skips geometry loading.
-2. `Stations` reads the fixed-width station catalog, cleans metadata, and selects
-   stations by geometry or identifier. Spatial filtering reprojects regions to
-   EPSG:4326 and uses `within`, which excludes points on polygon boundaries.
-3. Availability filtering requires an observation file for **every year** in the
-   inclusive requested range. Online mode examines NOAA year directory listings;
-   offline mode checks local files.
-4. Online mode downloads station/year gzip files through `ncei`. The CLI saves
-   `isd-history.txt`, `<selector>.<start>-<end>.txt`, and
-   `<selector>.<start>-<end>.nc` in the supplied `data_dir`; observation filenames
-   are `<USAF>-<WBAN>-<year>.gz`, with `.etag` sidecars.
-5. `stations.py` parses observations and builds an xarray dataset with
-   `time` and `station` dimensions and station metadata variables, then writes
-   NetCDF. Filters return new `Stations` objects; loading observations mutates the
-   object's `observations`.
-
-Preserve station identifiers as strings, including leading zeros and possible
-letters. The parser treats `-9999` as missing, converts trace precipitation
-`-1` to zero, and scales temperature, dew point, pressure, wind speed, and
-precipitation by 0.1. Keep variable names, units, station metadata, and UTC
-semantics compatible unless a task explicitly changes the output contract.
-The writer encodes time as float64 epoch seconds with a proleptic Gregorian
-calendar, floating data variables as float32, and drops object-valued data
-variables, including the auxiliary `UTC` variable.
+Document established components, dependencies, data flows, public interfaces, formats, invariants, and compatibility requirements here. Record concrete constraints once verified; do not impose hypothetical ones on a new project.
 
 ## Environment and Setup
 
-[pyproject.toml](pyproject.toml) declares Python `>=3.11,<=3.12.9`, setuptools
-`>=77`, and wheel. Runtime dependencies are GeoPandas, Matplotlib, NumPy,
-netCDF4, pandas, requests, Shapely, and xarray. Development dependencies include
-pytest, pytest-cov, Ruff, and pre-commit. See [environment.yml](environment.yml)
-for the conda-forge environment and additional Jupyter tools.
+Document the supported language and toolchain versions, dependency declarations, environment requirements, and verified setup procedure when they exist. Identify setup actions that install software, access the network, or modify files outside the root. Do not invent or automatically execute setup commands.
 
 ## Development Commands and Validation
 
-Run commands from the root in an already provisioned compatible environment.
-These are repository-defined workflows; dependency availability and successful
-execution must be verified separately.
+Document actual repository-defined commands for running, building, linting, formatting, and testing as they become available. State which commands modify files, create caches, require network access, or have other side effects. Until commands are established, inspect the repository rather than guessing them.
 
-| Command | Effect / caveat |
-| --- | --- |
-| `pip install -e ".[dev]"` | Editable installation used by CI; installs dependencies and writes installation metadata. Requires provisioning beyond a read-only analysis. |
-| `make setup-dev-env` | Runs `scripts/setup-dev-env.sh`; requires conda, uses mamba if available, and generates `environment-dev.yml`. Deletes/recreates `isd-lite-data-dev`, replaces its user Jupyter kernel, installs the package and Git hooks. Crosses the isolation boundary. |
-| `python -m ruff check .` | CI lint command, without automatic fixes; Ruff may write its cache. |
-| `make test` / `pytest` | Runs the configured `tests/` suite; may create caches. |
-| `make fmt` | Runs `python -m ruff format`, modifying files. |
-| `make lint` | Runs `python -m ruff check --fix`, modifying files. |
-| `make check` | Runs formatting and lint fixes; does not run tests. |
-| `build-isd-lite-dataset --help` | Installed CLI usage; correct executable spelling comes from `[project.scripts]`. |
-| `make upload-anaconda` | Builds and uploads through `scripts/upload2anaconda.sh`; uses external environments, temporary directories, credentials, and anaconda.org. |
-| `make clean` | Removes caches, coverage output, `dist/`, and `build/`. |
-
-CI installs the development extra, runs Ruff and pytest on Ubuntu with Python
-3.11, and runs on pull requests and pushes to `main`. No standalone wheel/sdist
-build target is defined in the Makefile. The README mentions `make type` and
-`make upload-pypi`, but neither target exists; mypy configuration is commented
-out. Do not assume those commands work.
-
-The CI test suite is intentionally limited to `tests/test_test.py`, which asserts `hrrr_ml.test.add(2, 2) == 4`. Do not add further CI tests unless explicitly requested by the user. Passing this placeholder does not establish numerical, model, netCDF, or operational correctness. For behavioral changes, use relevant safe checks with small in-repository inputs and report what was actually verified. Avoid live network calls and expensive retraining as default validation. Keep temporary verification files inside the repository and report validation limits explicitly.
+The CI test suite is intentionally limited to `tests/test_main.py`, which is initially empty in a new project. Do not add further CI tests unless explicitly requested by the user. Passing this placeholder does not establish numerical, model, netCDF, or operational correctness. For behavioral changes, use relevant safe checks with small in-repository inputs and report what was actually verified. Avoid live network calls and expensive retraining as default validation. Keep temporary verification files inside the repository and report validation limits explicitly.
 
 ## Coding Conventions
 
-- Follow [.editorconfig](.editorconfig): UTF-8, LF, final newline, four-space
-  indentation; YAML/JSON/TOML use two spaces.
-- Follow Ruff settings in `pyproject.toml`: target Python 3.11, line length 100,
-  preserved quote style, and lint groups E/F/I/UP/B/SIM with E501 and SIM108
-  ignored. Match nearby docstrings and typing rather than imposing a new style.
-- Keep orchestration in the CLI, HTTP/file naming in `ncei.py`, and metadata
-  and observation processing in `stations.py`. Existing code uses pathlib,
-  pandas, GeoPandas, and xarray rather than custom data containers.
-- Preserve packaged resource paths and shapefile companion files. Update
-  setuptools package-data patterns and `MANIFEST.in` when changing asset layout.
-  Keep region lists and geometry mappings consistent.
-- Read the data-provider README files under `src/isd_lite_data/data/` before
-  changing reference data. Retain provenance, attribution, and licensing notices;
-  the bundled datasets have terms separate from [LICENSE](LICENSE).
-  World Bank data documentation records local FRA/NOR country-code corrections.
+Follow repository configuration and established patterns in affected files. If there is no existing convention, use a consistent style appropriate to the task without introducing an unnecessary project-wide policy. Record agreed conventions here once established; avoid unrelated formatting changes.
+
+Prefer single quotes in computer code. Avoid unnecessary/excessive line breaks in code, only apply line breaks when lines are clearly too long.
+
+Follow `.editorconfig`: UTF-8, LF, final newline, four-space default indentation, two spaces for YAML/JSON/TOML, and tabs in Makefiles.
+
+### Python
+
+- Let leading and trailing doc string delimiters (''') stand on their own line.
+- Make filtering and masking explicit, and in associated code comments, state which values determine inclusion, which values are excluded, and which invalid values cause an exception.
+
+### Code documentation
+
+- When writing documentation, code comments, and docstrings, use plain, precise language that describes the actual behavior.
+- When editing documentation, preserve useful structure and detail, correct inaccuracies, and leave executable code unchanged unless requested.
+- Write the documentation for someone unfamiliar with the code. Explain what the code does, how to use it, its inputs and outputs, and relevant limitations.
+- Avoid unnecessary terminology, repetition, and implementation detail. Retain detail that helps the reader understand or use code correctly.
+- Use short, connected sentences and consistent terminology. Each sentence should add information.
+- Include implementation details only when they help the reader use the code or resolve a problem.
+- Do not add implementation or functional detail or specifics unless it is necessary for the user to understand objectives, usage, and results of a code.
+- Use the simplest accurate term. Add qualifiers only when they distinguish something meaningful. For example, prefer “loss” to “base loss” and “number” to “total number” unless the distinction is necessary.
+- Name quantities by what they represent. Distinguish errors, squared errors, sums, means, and counts. E.g., do not call an intermediate sum the loss when the returned loss is a normalized mean.
+- Explain calculations in logical order: define the quantities, describe which elements contribute, explain optional contributions, and state how the result is calculated.
+- Describe optional behavior precisely, including required parameter combinations, conditions for inclusion, and whether additional terms supplement or replace existing terms.
+- Match the implementation. Verify input requirements, return values, and exception conditions, including relevant edge cases. Do not infer behavior from existing documentation.
+- For docstrings, begin with a concise purpose statement, then explain behavior and provide structured parameter, return-value, and exception sections as appropriate.
+- Define abbreviations before using them.
 
 ## Configuration and External Interfaces
 
-The application is configured through CLI arguments; no runtime environment
-variable interface is defined in the Python sources. `--offline` requires the
-local station catalog and all needed gzip files, skips HTTP operations, and
-still writes station lists and NetCDF output.
-
-`ncei.py` defines anonymous HTTPS endpoints under
-`https://www.ncei.noaa.gov/pub/data/noaa/`: `isd-history.txt` and
-`isd-lite/<year>/<USAF>-<WBAN>-<year>.gz`. Cached downloads still issue HEAD
-requests and require an ETag; `refresh=True` forces downloading.
-
-The publishing script requires `ANACONDA_API_TOKEN` and supports
-`ANACONDA_USER_NAME`, `LICENSE_ID`, `PYPROJECT`, `IMPORT_NAME_OVERRIDE`,
-`BUILD_ENV_PREFIX`, `BUILD_ENV_NAME`, and `TMPDIR` overrides. Consult the script
-for defaults and behavior; do not inspect external credential stores or run
-publishing as routine validation.
+Document verified configuration sources, environment-variable *names*, external interfaces, permissions, and operational dependencies as they are introduced. Never record secret values. External resources are not exempt from the project-isolation rules.
 
 ## Change and Review Workflow
 
-- Read the relevant implementation and repository documentation first. Keep
-  changes focused and preserve unrelated working-tree edits.
-- For functional changes, add focused pytest coverage under `tests/` for the
-  affected behavior. Use small synthetic inputs and mocked HTTP responses; keep
-  validation independent of live NOAA availability.
-- Validate with CI's Ruff and pytest commands when the environment is available
-  and execution fits the boundary. For parsing, geometry, or serialization
-  changes, verify identifiers, units, missing values, coordinates, and relevant
-  round trips. Report unavailable dependencies and checks not performed.
-- Review the diff for output/API compatibility, resource packaging, accidental
-  generated data, and documentation drift. Update README examples when behavior
-  changes. Report what changed, checks performed, and unresolved limitations.
-- **Maintain `AGENTS.md`:** When making changes that affect the project's
-  architecture, interfaces, dependencies, workflows, conventions, or documented
-  constraints, update the relevant sections of `AGENTS.md` in the same change.
-  Keep revisions focused and based on verified repository contents. Do not
-  modify `AGENTS.md` for changes that do not affect its accuracy or usefulness.
+1. Inspect the repository state, relevant implementation, callers, tests, and local documentation before making changes. Preserve unrelated and uncommitted work.
+2. Implement the requested change with minimal unrelated modifications. Preserve established behavior and interfaces unless the request explicitly changes them.
+3. Add or update focused tests and relevant documentation when behavior changes. Avoid live services and expensive workloads for routine validation unless specifically required and authorized.
+4. Run applicable, safe checks using verified project commands. If prerequisites or permissions are missing, report the limitation rather than inventing a workaround that crosses the project boundary.
+5. Review the changed files and, when Git is available, `git diff --check`, `git diff`, and `git status`. Check for accidental generated files, credentials, destructive side effects, and compatibility changes. Summarize changes, checks performed, and remaining uncertainty.
+6. **Maintain `AGENTS.md`:** When changes affect the project's architecture, interfaces, dependencies, workflows, conventions, or documented constraints, update the relevant sections of `AGENTS.md` in the same change. Keep revisions focused and based on verified repository contents. Do not modify `AGENTS.md` when its accuracy and usefulness are unaffected.
 
 ## Known Limitations and Verification Gaps
 
-- The current test suite verifies only `add(2, 2) == 4`; a passing suite does not
-  validate downloading, geography, parsing, CLI behavior, or NetCDF round trips.
-- README promises relative humidity, but `Stations.var_names` contains only
-  `T, TD, SLP, WD, WS, SKY, PREC1H, PREC6H`; no humidity calculation is present.
-  Confirm the intended feature before documenting or implementing it.
-- The documented full-hourly series currently uses the union of observed
-  timestamps; it does not generate a complete hourly index. Confirm gap-filling
-  requirements before changing this behavior.
-- Download HEAD and GET loops each allow 1,200 attempts with three-second retry
-  delays. Threaded worker exceptions are printed rather than propagated, and
-  directory-listing failures can be skipped. Verify actual file availability;
-  downloader completion alone does not establish success.
-- NetCDF output overwrites an existing target. Large station/year selections
-  materialize arrays in memory; use small fixtures for validation.
-- No dependency lockfile or end-to-end fixture set is present. CI covers only
-  Python 3.11; compatibility across the full declared Python range, geospatial
-  dependency versions, external endpoint behavior, and release execution require
-  separate verification within the isolation policy.
+Record observed limitations, missing tests, unresolved dependencies, documentation discrepancies, and claims requiring runtime or manual verification. Clearly distinguish confirmed problems from unverified possibilities. Remove or revise entries when evidence changes.
