@@ -29,7 +29,6 @@ build-isd-lite-dataset = "isd_lite_data.build_isd_lite_dataset:main" # Connects 
 dev = [
   "pytest>=8",
   "pytest-cov>=5",
-  "ruff>=0.5",
   "pre-commit>=3.7",
 ]
 
